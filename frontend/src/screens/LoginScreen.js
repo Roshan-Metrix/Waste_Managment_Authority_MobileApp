@@ -19,18 +19,56 @@ export default function LoginScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleLogin = async () => {
-    if (!email || !password) return setMessage("Please fill all fields");
-    setLoading(true);
-    try {
-      const res = await login(email, password);
-      setMessage(res.message || "");
-    } catch (error) {
-      setMessage("Login failed. Please try again.");
-    } finally {
-      setLoading(false);
+  // const handleLogin = async () => {
+  //   if (!email || !password) return setMessage("Please fill all fields");
+  //   setLoading(true);
+  //   try {
+  //     const res = await login(email, password);
+  //     setMessage(res.message || "");
+  //   } catch (error) {
+  //     setMessage("Login failed. Please try again.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+const handleLogin = async () => {
+  if (!email || !password) return setMessage("Please fill all fields");
+
+  setLoading(true);
+  try {
+    const res = await login(email, password); // using existing login helper
+
+    if (res.success) {
+      // Check for Vendor role
+      if (res.user.role === "vendor") {
+        Alert.alert(
+          "Vendor Login",
+          "Please use the vendor website to continue."
+        );
+
+        // open vendor portal link , below just example
+        Linking.openURL("https://www.decathlon.in/");
+        return;
+      }
+
+      // App user (Admin, Manager, or Staff)
+      await AsyncStorage.setItem("userToken", res.token);
+      setUser(res.user);
+      navigation.replace("Home");
+      setMessage("Login successful");
+    } else {
+      setMessage(res.message || "Login failed");
     }
-  };
+  } catch (error) {
+    console.error(error);
+    setMessage("Login failed. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: "#f9fafb" }}>
