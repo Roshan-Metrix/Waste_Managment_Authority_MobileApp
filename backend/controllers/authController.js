@@ -9,7 +9,7 @@ import transporter from "../config/nodemailer.js";
 import dotenv from 'dotenv'
 dotenv.config();
 
-export const registerUser = async (req, res) => {
+export const registerAdmin = async (req, res) => {
   const { name, email, password, role } = req.body;
 
   if (!name || !email || !password || !role) {
