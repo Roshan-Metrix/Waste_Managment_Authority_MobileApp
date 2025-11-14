@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import { Alert } from "react-native";
 
 export default function AddStoreScreen({ navigation }) {
   const [storeId, setStoreId] = useState("");
@@ -22,7 +21,7 @@ export default function AddStoreScreen({ navigation }) {
   const [vendorEmail, setVendorEmail] = useState("");
   const [vendorPassword, setVendorPassword] = useState("");
 
-  // Generate 16-char random password
+  // Auto password generator
   const generatePassword = () => {
     const chars =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -39,7 +38,7 @@ export default function AddStoreScreen({ navigation }) {
       return;
     }
 
-    // Open Popup & generate password
+    // Generate password and open modal
     setVendorPassword(generatePassword());
     setModalVisible(true);
   };
@@ -54,7 +53,7 @@ export default function AddStoreScreen({ navigation }) {
       `Store Added!\nVendor Email: ${vendorEmail}\nVendor Password: ${vendorPassword}`
     );
 
-    // Reset fields
+    // Reset all fields
     setStoreId("");
     setStoreName("");
     setStoreLocation("");
@@ -66,7 +65,6 @@ export default function AddStoreScreen({ navigation }) {
 
   const copyPassword = async () => {
     await Clipboard.setStringAsync(vendorPassword);
-    // Alert.alert("Copied!", "Password copied to clipboard.");
   };
 
   return (
@@ -84,40 +82,56 @@ export default function AddStoreScreen({ navigation }) {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        {/* Icon */}
+        {/* Main Icon */}
         <View style={styles.iconCircle}>
           <MaterialIcons name="store" size={60} color="#2563eb" />
         </View>
 
         <Text style={styles.subTitle}>Enter Store Details</Text>
 
-        {/* Input Fields */}
+        {/* Input Fields with Icons */}
         <View style={styles.form}>
-          <TextInput
-            placeholder="Store ID"
-            value={storeId}
-            onChangeText={setStoreId}
-            style={styles.input}
-          />
-          <TextInput
-            placeholder="Store Name"
-            value={storeName}
-            onChangeText={setStoreName}
-            style={styles.input}
-          />
-          <TextInput
-            placeholder="Location"
-            value={storeLocation}
-            onChangeText={setStoreLocation}
-            style={styles.input}
-          />
-          <TextInput
-            placeholder="Contact Number"
-            value={contactNumber}
-            onChangeText={setContactNumber}
-            keyboardType="numeric"
-            style={styles.input}
-          />
+
+          <View style={styles.inputRow}>
+            <MaterialIcons name="badge" size={24} color="#2563eb" />
+            <TextInput
+              placeholder="Store ID"
+              value={storeId}
+              onChangeText={setStoreId}
+              style={styles.input}
+            />
+          </View>
+
+          <View style={styles.inputRow}>
+            <MaterialIcons name="storefront" size={24} color="#2563eb" />
+            <TextInput
+              placeholder="Store Name"
+              value={storeName}
+              onChangeText={setStoreName}
+              style={styles.input}
+            />
+          </View>
+
+          <View style={styles.inputRow}>
+            <MaterialIcons name="location-on" size={24} color="#2563eb" />
+            <TextInput
+              placeholder="Location"
+              value={storeLocation}
+              onChangeText={setStoreLocation}
+              style={styles.input}
+            />
+          </View>
+
+          <View style={styles.inputRow}>
+            <MaterialIcons name="call" size={24} color="#2563eb" />
+            <TextInput
+              placeholder="Contact Number"
+              value={contactNumber}
+              onChangeText={setContactNumber}
+              keyboardType="numeric"
+              style={styles.input}
+            />
+          </View>
         </View>
 
         {/* Add Button */}
@@ -137,23 +151,22 @@ export default function AddStoreScreen({ navigation }) {
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>Manager Login Details</Text>
 
-            <TextInput
-              placeholder="Manager Email"
-              value={vendorEmail}
-              onChangeText={setVendorEmail}
-              style={styles.input}
-            />
+            {/* Email with Icon */}
+            <View style={styles.inputRow}>
+              <MaterialIcons name="email" size={24} color="#2563eb" />
+              <TextInput
+                placeholder="Manager Email"
+                value={vendorEmail}
+                onChangeText={setVendorEmail}
+                style={styles.input}
+              />
+            </View>
 
+            {/* Password Box with Icon */}
             <View style={styles.passwordBox}>
-              <TouchableOpacity onPress={copyPassword}>
-                <Text
-                  style={[
-                    styles.passwordText,
-                    { color: "#1d4ed8" },
-                  ]}
-                >
-                  {vendorPassword}
-                </Text>
+              <TouchableOpacity onPress={copyPassword} style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+                <MaterialIcons name="lock" size={24} color="#1d4ed8" style={{ marginRight: 6 }} />
+                <Text style={styles.passwordText}>{vendorPassword}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -163,6 +176,7 @@ export default function AddStoreScreen({ navigation }) {
               </TouchableOpacity>
             </View>
 
+            {/* Submit */}
             <TouchableOpacity
               style={styles.submitButton}
               onPress={handleVendorSubmit}
@@ -170,6 +184,7 @@ export default function AddStoreScreen({ navigation }) {
               <Text style={styles.submitText}>Confirm & Create Manager</Text>
             </TouchableOpacity>
 
+            {/* Cancel */}
             <TouchableOpacity
               style={styles.cancelButton}
               onPress={() => setModalVisible(false)}
@@ -224,19 +239,29 @@ const styles = StyleSheet.create({
     color: "#111827",
     marginBottom: 20,
   },
+
   form: {
     width: "100%",
     marginBottom: 30,
   },
-  input: {
+
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#fff",
-    padding: 14,
-    borderRadius: 12,
     borderWidth: 1,
     borderColor: "#e5e7eb",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
     marginBottom: 15,
-    fontSize: 16,
   },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    marginLeft: 10,
+  },
+
   addButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -273,21 +298,23 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "center",
   },
+
   passwordBox: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     backgroundColor: "#e0e7ff",
     padding: 14,
     borderRadius: 10,
-    marginBottom: 20,
+    marginVertical: 20,
+    justifyContent: "space-between",
   },
+
   passwordText: {
     fontSize: 16,
     fontWeight: "600",
     letterSpacing: 1,
-    color: "#111",
   },
+
   submitButton: {
     backgroundColor: "#2563eb",
     paddingVertical: 12,
@@ -300,6 +327,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 16,
   },
+
   cancelButton: {
     paddingVertical: 10,
   },

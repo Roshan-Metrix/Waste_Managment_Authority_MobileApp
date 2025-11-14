@@ -32,8 +32,8 @@ export default function ManageAdminScreen({ navigation }) {
 
         <Text style={styles.subTitle}>Admin Control Panel</Text>
         <Text style={styles.desc}>
-          Manage all store managers and staff accounts here. You can add new
-          users, edit existing ones, or remove inactive accounts.
+          Manage other admins, You can add new
+          admins, view other admins .
         </Text>
 
         {/* Action Buttons */}

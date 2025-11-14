@@ -19,10 +19,10 @@ export default function UserScreen({ navigation }) {
   const roleBoxes = {
     admin: [
       { title: "Add Store", icon: "store", screen: "AddStoreScreen" },
-      { title: "Manage Data", icon: "folder", screen: "ManageDataAdminScreen" },
       { title: "Manage Stores", icon: "storefront", screen: "ManageStoresScreen" },
       { title: "Manage Admins", icon: "manage-accounts", screen: "ManageAdminScreen" },
       { title: "Manage Managers", icon: "supervisor-account", screen: "ManageManagerScreen" },
+      { title: "Manage Data", icon: "folder", screen: "ManageDataAdminScreen" },
       { title: "Notify Stores", icon: "notifications", screen: "NotifyStoresScreen" },
       { title: "Data Analysis", icon: "query-stats", screen: "DataAnalysisScreen" },
     ],
