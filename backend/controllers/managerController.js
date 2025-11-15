@@ -2,9 +2,7 @@ import managerModel from "../models/adminModel.js";
 
 export const getAllManagers = async (req, res) => {
   try {
-    const admins = await managerModel
-      .find({ role: "manager" })
-      .select("-password -__v");
+    const admins = await managerModel.find().select("-password -__v");
 
     return res.json({
       success: true,
