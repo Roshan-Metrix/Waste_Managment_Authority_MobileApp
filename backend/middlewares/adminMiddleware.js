@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const authMiddleware = (req, res, next) => {
+const adminMiddleware = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -13,14 +13,15 @@ const authMiddleware = (req, res, next) => {
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    console.log(decoded);
-
+    
+    if(decoded.role == 'admin'){
     req.user = decoded;
     next();
+    }
 
   } catch (error) {
     return res.status(401).json({ success: false, message: "Invalid or expired token" });
   }
 };
 
-export default authMiddleware;
+export default adminMiddleware;

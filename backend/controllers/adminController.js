@@ -1,4 +1,4 @@
-import userModel from "../models/userModel.js";
+import userModel from "../models/adminModel.js";
 
 export const getAllAdmins = async (req, res) => {
   try {
@@ -16,3 +16,5 @@ export const getAllAdmins = async (req, res) => {
     return res.json({ success: false, message: error.message });
   }
 };
+
+

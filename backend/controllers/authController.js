@@ -1,66 +1,187 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import userModel from "../models/userModel.js";
+import userModel from "../models/adminModel.js";
 import {
   PASSWORD_RESET_SUCCESSFULLY_TEMPLATE,
   PASSWORD_RESET_TEMPLATE,
 } from "../config/emailTemplates.js";
 import transporter from "../config/nodemailer.js";
 import dotenv from 'dotenv'
+import adminModel from "../models/adminModel.js";
+import storeModel from "../models/storeModel.js";
+import managerModel from "../models/managerModel.js";
 dotenv.config();
 
 export const registerAdmin = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password } = req.body;
 
-  if (!name || !email || !password || !role) {
+  if (!name || !email || !password ) {
     return res.json({ success: false, message: "Missing details" });
   }
 
   try {
-    const existingUser = await userModel.findOne({ email });
+    const existingUser = await adminModel.findOne({ email });
 
     if (existingUser) {
-      return res.json({ success: false, message: "User already exists" });
+      return res.json({ success: false, message: "Admin already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = new userModel({
+    const admin = new userModel({
       name,
       email,
       password: hashedPassword,
-      role,
-      isApproved: false,
+      isApproved: true,
     });
 
-    await user.save();
+    await admin.save();
 
     const token = jwt.sign(
       { 
-        id: user._id, 
-        role: user.role, 
-        isApproved: user.isApproved 
+        id: admin._id, 
+        role: admin.role, 
+        isApproved: admin.isApproved 
     },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "15d" }
     );
 
     return res.json({
       success: true,
       token,
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        isApproved: user.isApproved,
+        id: admin._id,
+        name: admin.name,
+        email: admin.email,
+        role: admin.role,
+        isApproved: admin.isApproved,
       },
-      message: "Registration successful. Waiting for approval.",
+      message: "Registration successful",
     });
   } catch (error) {
     return res.json({ success: false, message: error.message });
   }
 };
+
+export const registerStore = async (req, res) => {
+  const { storeId , name, storeLocation, contactNumber, email, password } = req.body;
+
+  if (!storeId , !name, !storeLocation, !contactNumber, !email, !password ) {
+    return res.json({ success: false, message: "Missing details" });
+  }
+
+  try {
+    const existingStore = await storeModel.findOne({ storeId });
+
+    if (existingStore) {
+      return res.json({ success: false, message: "Store already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const store = new storeModel({
+      storeId , 
+      name,
+      storeLocation, 
+      contactNumber, 
+      email,
+      password : hashedPassword,
+      isApproved : true
+    });
+
+    await store.save();
+
+    const token = jwt.sign(
+      { 
+        id: store._id, 
+        role: store.role, 
+        isApproved: store.isApproved 
+    },
+      process.env.JWT_SECRET,
+      { expiresIn: "15d" }
+    );
+
+    return res.json({
+      success: true,
+      token,
+      user: {
+        id: store._id,
+        storeId: store.storeId,  
+        name: store.name,
+        email: store.email,
+        contactNumber:store.contactNumber,
+        role: store.role,
+        isApproved: store.isApproved,
+        storeLocation:store.storeLocation
+      },
+      message: "Registration successful",
+    });
+  } catch (error) {
+    return res.json({ success: false, message: error.message });
+  }
+};
+
+export const registerManager = async (req, res) => {
+  const { storeId , name, email, password } = req.body;
+
+  if (!storeId , !name, !email, !password ) {
+    return res.json({ success: false, message: "Missing details" });
+  }
+
+  try {
+    const existingManager = await managerModel.findOne({ email });
+    const existingStore = await storeModel.findOne({ storeId })
+
+    if (existingManager) {
+      return res.json({ success: false, message: "Manager already exists" });
+    }
+
+    if (!existingStore) {
+      return res.json({ success: false, message: "Store not exists , First Add store" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const manager = new managerModel({
+      storeId , 
+      name, 
+      email, 
+      password : hashedPassword,
+      isApproved : true
+    });
+
+    await manager.save();
+
+    const token = jwt.sign(
+      { 
+        id: manager._id, 
+        role: manager.role, 
+        isApproved: manager.isApproved 
+    },
+      process.env.JWT_SECRET,
+      { expiresIn: "15d" }
+    );
+
+    return res.json({
+      success: true,
+      token,
+      user: {
+        id: manager._id,
+        storeId: manager.storeId,  
+        name: manager.name,
+        email: manager.email,
+        role: manager.role,
+        isApproved: manager.isApproved,
+      },
+      message: "Registration successful",
+    });
+  } catch (error) {
+    return res.json({ success: false, message: error.message });
+  }
+};
+
+
 
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
@@ -73,9 +194,14 @@ export const loginUser = async (req, res) => {
   }
 
   try {
-    const user = await userModel.findOne({ email });
+    let user = await userModel.findOne({ email });
 
     if (!user) {
+       user =  await storeModel.findOne({email});
+    }
+
+    if (!user) {
+
       return res.json({ success: false, message: "Invalid email" });
     }
 

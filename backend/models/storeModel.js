@@ -8,32 +8,53 @@ const storeSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
-
-    storeName: {
+    name: {
       type: String,
       required: true,
       trim: true,
     },
-
     storeLocation: {
       type: String,
       required: true,
       trim: true,
     },
-
     contactNumber: {
       type: String,
       required: true,
       trim: true,
     },
-
-     createdBy: {
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+   password: {
+      type: String,
+      required: true,
+    },
+    isApproved:{
+      type: Boolean,
+      default: false,
+    },
+    role: {
+      type: String,
+      default: "manager",
+    },
+    resetOtp:{
+        type:String,
+        default:''
+    },
+    resetOtpExpireAt:{
+        type:Number,
+        default:0
+    },
+    createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "user", 
+      ref: "user",
     },
   },
   { timestamps: true }
 );
 
-const Store = mongoose.model("Store", storeSchema);
-export default Store;
+const storeModel = mongoose.model("store", storeSchema);
+export default storeModel;

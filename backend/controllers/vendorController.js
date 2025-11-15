@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import userModel from "../models/userModel.js";
+import userModel from "../models/adminModel.js";
 
 export const vendorRegister = async (req, res) => {
   const { name, email, password, role } = req.body;
