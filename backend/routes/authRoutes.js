@@ -20,11 +20,11 @@ authRouter.post('/reset-password',resetPassword)
 authRouter.post('/admin/registerAdmin',adminMiddleware,registerAdmin);
 authRouter.post('/admin/registerStore',adminMiddleware,registerStore);
 authRouter.get('/admin/get-all-admins',authMiddleware,getAllAdmins);
-authRouter.get('/admin/get-all-managers',authMiddleware,getAllManagers);
 authRouter.get('/admin/get-all-stores',adminMiddleware,getAllStores);
 authRouter.delete('/admin/delete-store/:storeId',adminMiddleware,deleteStore);
 
 //manager
+authRouter.get('/get-all-managers',authMiddleware,getAllManagers);
 authRouter.post('/registerManager',authMiddleware,registerManager);
 
 //vendor

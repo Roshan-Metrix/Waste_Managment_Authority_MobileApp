@@ -1,10 +1,8 @@
-import userModel from "../models/adminModel.js";
+import adminModel from "../models/adminModel.js";
 
 export const getAllAdmins = async (req, res) => {
   try {
-    const admins = await userModel
-      .find({ role: "admin" })
-      .select("-password -__v");
+    const admins = await adminModel.find().select("-password -__v");
 
     return res.json({
       success: true,

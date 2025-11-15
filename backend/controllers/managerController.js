@@ -1,16 +1,17 @@
-import managerModel from "../models/adminModel.js";
+import managerModel from "../models/managerModel.js";
 
 export const getAllManagers = async (req, res) => {
   try {
-    const admins = await managerModel.find().select("-password -__v");
+    const managers = await managerModel.find().select("-password -__v");
 
     return res.json({
       success: true,
-      count: admins.length,
-      admins,
+      count: managers.length,
+      managers,
     });
 
   } catch (error) {
+    console.log("Error in getAllManagers Controller : ",error)
     return res.json({ success: false, message: error.message });
   }
 };
