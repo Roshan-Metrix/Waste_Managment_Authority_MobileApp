@@ -195,34 +195,45 @@ export const loginUser = async (req, res) => {
   }
 
   try {
-    let user = await userModel.findOne({ email });
+    let user = null;
 
+    // Check Admin
+    user = await userModel.findOne({ email });
+
+    // Check Store
     if (!user) {
-       user =  await storeModel.findOne({email});
+      user = await storeModel.findOne({ email });
     }
+
+    // Check Manager
     if (!user) {
       user = await managerModel.findOne({ email });
     }
 
     if (!user) {
-
       return res.json({ success: false, message: "Invalid email" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-
     if (!isMatch) {
       return res.json({ success: false, message: "Invalid password" });
     }
 
+    // Approval check
     if (!user.isApproved) {
-      return res.json({ success: false, message: "Account not approved yet" });
+      return res.json({
+        success: false,
+        message: "Account not approved yet",
+      });
     }
 
+    // Create token
     const token = jwt.sign(
-      { id: user._id, 
-        role: user.role, 
-        isApproved: user.isApproved },
+      {
+        id: user._id,
+        role: user.role,
+        isApproved: user.isApproved,
+      },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
@@ -238,12 +249,12 @@ export const loginUser = async (req, res) => {
         isApproved: user.isApproved,
       },
     });
+
   } catch (error) {
-    console.log("Error in loginUser Controller : ",error);
+    console.log("Error in loginUser Controller:", error);
     return res.json({ success: false, message: error.message });
   }
 };
-
 
 export const logoutUser = async (req, res) => {
   try {
