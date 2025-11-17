@@ -1,6 +1,5 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import userModel from "../models/adminModel.js";
 import {
   PASSWORD_RESET_SUCCESSFULLY_TEMPLATE,
   PASSWORD_RESET_TEMPLATE,
@@ -9,13 +8,13 @@ import transporter from "../config/nodemailer.js";
 import adminModel from "../models/adminModel.js";
 import storeModel from "../models/storeModel.js";
 import managerModel from "../models/managerModel.js";
-import dotenv from 'dotenv'
+import dotenv from "dotenv";
 dotenv.config();
 
 export const registerAdmin = async (req, res) => {
   const { name, email, password } = req.body;
 
-  if (!name || !email || !password ) {
+  if (!name || !email || !password) {
     return res.json({ success: false, message: "Missing details" });
   }
 
@@ -28,7 +27,7 @@ export const registerAdmin = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const admin = new userModel({
+    const admin = new adminModel({
       name,
       email,
       password: hashedPassword,
@@ -38,11 +37,11 @@ export const registerAdmin = async (req, res) => {
     await admin.save();
 
     const token = jwt.sign(
-      { 
-        id: admin._id, 
-        role: admin.role, 
-        isApproved: admin.isApproved 
-    },
+      {
+        id: admin._id,
+        role: admin.role,
+        isApproved: admin.isApproved,
+      },
       process.env.JWT_SECRET,
       { expiresIn: "15d" }
     );
@@ -60,15 +59,23 @@ export const registerAdmin = async (req, res) => {
       message: "Registration successful",
     });
   } catch (error) {
-    console.log("Error in registerAdmin Controller : ",error);
+    console.log("Error in registerAdmin Controller : ", error);
     return res.json({ success: false, message: error.message });
   }
 };
 
 export const registerStore = async (req, res) => {
-  const { storeId , name, storeLocation, contactNumber, email, password } = req.body;
+  const { storeId, name, storeLocation, contactNumber, email, password } =
+    req.body;
 
-  if (!storeId || !name || !storeLocation || !contactNumber || !email || !password ) {
+  if (
+    !storeId ||
+    !name ||
+    !storeLocation ||
+    !contactNumber ||
+    !email ||
+    !password
+  ) {
     return res.json({ success: false, message: "Missing details" });
   }
 
@@ -82,23 +89,23 @@ export const registerStore = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const store = new storeModel({
-      storeId , 
+      storeId,
       name,
-      storeLocation, 
-      contactNumber, 
+      storeLocation,
+      contactNumber,
       email,
-      password : hashedPassword,
-      isApproved : true
+      password: hashedPassword,
+      isApproved: true,
     });
 
     await store.save();
 
     const token = jwt.sign(
-      { 
-        id: store._id, 
-        role: store.role, 
-        isApproved: store.isApproved 
-    },
+      {
+        id: store._id,
+        role: store.role,
+        isApproved: store.isApproved,
+      },
       process.env.JWT_SECRET,
       { expiresIn: "15d" }
     );
@@ -108,59 +115,62 @@ export const registerStore = async (req, res) => {
       token,
       user: {
         id: store._id,
-        storeId: store.storeId,  
+        storeId: store.storeId,
         name: store.name,
         email: store.email,
-        contactNumber:store.contactNumber,
+        contactNumber: store.contactNumber,
         role: store.role,
         isApproved: store.isApproved,
-        storeLocation:store.storeLocation
+        storeLocation: store.storeLocation,
       },
       message: "Registration successful",
     });
   } catch (error) {
-    console.log("Error in registerStore Controller : ",error);
+    console.log("Error in registerStore Controller : ", error);
     return res.json({ success: false, message: error.message });
   }
 };
 
 export const registerManager = async (req, res) => {
-  const { storeId , name, email, password } = req.body;
+  const { storeId, name, email, password } = req.body;
 
-  if (!storeId , !name, !email, !password ) {
+  if ((!storeId, !name, !email, !password)) {
     return res.json({ success: false, message: "Missing details" });
   }
 
   try {
     const existingManager = await managerModel.findOne({ email });
-    const existingStore = await storeModel.findOne({ storeId })
+    const existingStore = await storeModel.findOne({ storeId });
 
     if (existingManager) {
       return res.json({ success: false, message: "Manager already exists" });
     }
 
     if (!existingStore) {
-      return res.json({ success: false, message: "Store not exists , First Add store" });
+      return res.json({
+        success: false,
+        message: "Store not exists , First Add store",
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const manager = new managerModel({
-      storeId , 
-      name, 
-      email, 
-      password : hashedPassword,
-      isApproved : true
+      storeId,
+      name,
+      email,
+      password: hashedPassword,
+      isApproved: true,
     });
 
     await manager.save();
 
     const token = jwt.sign(
-      { 
-        id: manager._id, 
-        role: manager.role, 
-        isApproved: manager.isApproved 
-    },
+      {
+        id: manager._id,
+        role: manager.role,
+        isApproved: manager.isApproved,
+      },
       process.env.JWT_SECRET,
       { expiresIn: "15d" }
     );
@@ -170,7 +180,7 @@ export const registerManager = async (req, res) => {
       token,
       user: {
         id: manager._id,
-        storeId: manager.storeId,  
+        storeId: manager.storeId,
         name: manager.name,
         email: manager.email,
         role: manager.role,
@@ -179,7 +189,7 @@ export const registerManager = async (req, res) => {
       message: "Registration successful",
     });
   } catch (error) {
-    console.log("Error in registerManager Controller : ",error);
+    console.log("Error in registerManager Controller : ", error);
     return res.json({ success: false, message: error.message });
   }
 };
@@ -198,7 +208,7 @@ export const loginUser = async (req, res) => {
     let user = null;
 
     // Check Admin
-    user = await userModel.findOne({ email });
+    user = await adminModel.findOne({ email });
 
     // Check Store
     if (!user) {
@@ -235,7 +245,7 @@ export const loginUser = async (req, res) => {
         isApproved: user.isApproved,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "15d" }
     );
 
     return res.json({
@@ -249,7 +259,6 @@ export const loginUser = async (req, res) => {
         isApproved: user.isApproved,
       },
     });
-
   } catch (error) {
     console.log("Error in loginUser Controller:", error);
     return res.json({ success: false, message: error.message });
@@ -263,7 +272,7 @@ export const logoutUser = async (req, res) => {
       message: "Logged out successfully",
     });
   } catch (error) {
-    console.log("Error in logoutUser Controller : ",error);
+    console.log("Error in logoutUser Controller : ", error);
     return res.json({ success: false, message: error.message });
   }
 };
@@ -272,9 +281,7 @@ export const getLoggedInUserDetails = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const user = await userModel
-      .findById(userId)
-      .select("-password -__v");
+    const user = await userModel.findById(userId).select("-password -__v");
 
     if (!user) {
       return res.json({ success: false, message: "User not found" });
@@ -289,12 +296,11 @@ export const getLoggedInUserDetails = async (req, res) => {
         role: user.role,
         isApproved: user.isApproved,
         createdAt: user.createdAt,
-        updatedAt: user.updatedAt
-      }
+        updatedAt: user.updatedAt,
+      },
     });
-
   } catch (error) {
-    console.log("Error in getLoggedInUsesDetails Controller : ",error);
+    console.log("Error in getLoggedInUsesDetails Controller : ", error);
     return res.json({ success: false, message: error.message });
   }
 };
@@ -330,7 +336,7 @@ export const sendPasswordResetOtp = async (req, res) => {
 
     return res.json({ success: true, message: "Reset OTP sent successfully" });
   } catch (error) {
-    console.log("Error in sendPasswordResetOtp Controller : ",error);
+    console.log("Error in sendPasswordResetOtp Controller : ", error);
     return res.json({ success: false, message: error.message });
   }
 };
@@ -385,7 +391,53 @@ export const resetPassword = async (req, res) => {
       message: "Password has been reset successfully",
     });
   } catch (error) {
-    console.log("Error in resetPassword Controller : ",error);
+    console.log("Error in resetPassword Controller : ", error);
+    return res.json({ success: false, message: error.message });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  const userId = req.user.id;
+  const { oldPassword, newPassword } = req.body;
+  if (!oldPassword || !newPassword) {
+    return res.json({ success: false, message: "Missing details" });
+  }
+  try {
+     let user = null;
+
+    // Check Admin
+    user = await adminModel.findOne({ _id: userId });
+
+    // Check Store
+    if (!user) {
+      user = await storeModel.findOne({ _id: userId });
+    }
+
+    // Check Manager
+    if (!user) {
+      user = await managerModel.findOne({ _id: userId });
+    }
+
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+
+    if (!isMatch) {
+      return res.json({ success: false, message: "Old password not match" });
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    user.password = hashedPassword;
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  } catch (error) {
+    console.log("Error in changePassword Controller : ", error);
     return res.json({ success: false, message: error.message });
   }
 };

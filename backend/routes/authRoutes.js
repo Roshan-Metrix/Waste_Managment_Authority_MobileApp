@@ -1,5 +1,5 @@
 import express from 'express';
-import {loginUser,logoutUser, getLoggedInUserDetails, sendPasswordResetOtp, resetPassword, registerAdmin, registerStore, registerManager } from '../controllers/authController.js';
+import {loginUser,logoutUser, getLoggedInUserDetails, sendPasswordResetOtp, resetPassword, registerAdmin, registerStore, registerManager, changePassword } from '../controllers/authController.js';
 import authMiddleware from '../middlewares/authMiddleware.js';
 import authVendorMiddleware from '../middlewares/authVendorMiddleware.js';
 import { getVendorLoggedInDetails, logoutVendor, vendorLogin, vendorRegister } from '../controllers/vendorController.js';
@@ -13,8 +13,9 @@ const authRouter = express.Router();
 authRouter.post('/login', loginUser);
 authRouter.post('/logout', logoutUser);
 authRouter.get('/profile',authMiddleware,getLoggedInUserDetails);
-authRouter.post('/send-reset-otp', sendPasswordResetOtp)
-authRouter.post('/reset-password',resetPassword)
+authRouter.post('/send-reset-otp', sendPasswordResetOtp);
+authRouter.post('/reset-password',resetPassword);
+authRouter.put('/change-password',authMiddleware,changePassword);
 
 //admin
 authRouter.post('/admin/registerAdmin',adminMiddleware,registerAdmin);
