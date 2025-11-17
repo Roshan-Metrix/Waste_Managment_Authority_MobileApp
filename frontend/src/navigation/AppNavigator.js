@@ -13,6 +13,7 @@ import UserScreen from "../screens/UserScreen";
 import SavedDataScreen from "../screens/SavedDataScreen";
 import SearchScreen from "../screens/SearchScreen";
 import ProfileScreen from "../screens/ProfileScreen";
+import ChangePasswordScreen from "../screens/ChangePasswordScreen";
 
 // Admin Screens
 import AddStoreScreen from "../screens/Admin/AddStoreScreen";
@@ -71,6 +72,7 @@ export default function AppNavigator() {
             <Stack.Screen name="SavedDataScreen" component={SavedDataScreen} />
             <Stack.Screen name="SearchScreen" component={SearchScreen} />
             <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+            <Stack.Screen name="ChangePasswordScreen" component={ChangePasswordScreen} />
 
             {/* Admin Screens */}
             <Stack.Screen name="AddStoreScreen" component={AddStoreScreen} />

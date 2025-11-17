@@ -12,24 +12,34 @@ import { Ionicons } from "@expo/vector-icons";
 import Input from "../Components/Input";
 import api from "../api/api";
 
-export default function ForgotPasswordScreen({ navigation }) {
-  const [email, setEmail] = useState("");
+export default function ChangePasswordScreen({ navigation }) {
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleSendOtp = async () => {
-    if (!email) return setMessage("Please enter your email");
+  const handleChangePassword = async () => {
+    if (!oldPassword || !newPassword) {
+      setMessage("Please fill all fields");
+      return;
+    }
+
     setLoading(true);
     try {
-      const { data } = await api.post("/auth/send-reset-otp", { email });
+      const { data } = await api.put("/auth/change-password", {
+        oldPassword,
+        newPassword,
+      });
+
       setMessage(data.message);
+
       if (data.success) {
         setTimeout(() => {
-          navigation.navigate("ResetPassword", { email });
+          navigation.goBack();
         }, 1500);
       }
     } catch (err) {
-      setMessage("Failed to send OTP");
+      setMessage("Failed to change password");
     } finally {
       setLoading(false);
     }
@@ -38,7 +48,8 @@ export default function ForgotPasswordScreen({ navigation }) {
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: "#f9fafb" }}>
       <ScrollView contentContainerStyle={styles.container}>
-        {/* Back Arrow */}
+        
+        {/* Back Button */}
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -48,38 +59,44 @@ export default function ForgotPasswordScreen({ navigation }) {
 
         {/* Header */}
         <View style={styles.headerContainer}>
-          <Ionicons name="mail-open-outline" size={70} color="#2563eb" />
-          <Text style={styles.title}>Forgot Password</Text>
+          <Ionicons name="lock-open-outline" size={70} color="#2563eb" />
+          <Text style={styles.title}>Change Password</Text>
           <Text style={styles.subtitle}>
-            Enter your email to receive OTP for password reset
+            Enter your current and new password
           </Text>
         </View>
 
         {/* Form */}
         <View style={styles.formContainer}>
           <Input
-            icon={<Ionicons name="mail-outline" size={22} color="#2563eb" />}
-            placeholder="Enter your email"
-            onChangeText={setEmail}
+            secure
+            icon={<Ionicons name="lock-closed" size={22} color="#2563eb" />}
+            placeholder="Old Password"
+            onChangeText={setOldPassword}
           />
 
-          {message ? (
-            <Text style={styles.messageText}>{message}</Text>
-          ) : null}
+          <Input
+            secure
+            icon={<Ionicons name="key-outline" size={22} color="#2563eb" />}
+            placeholder="New Password"
+            onChangeText={setNewPassword}
+          />
+
+          {message ? <Text style={styles.messageText}>{message}</Text> : null}
 
           <TouchableOpacity
             style={styles.button}
-            onPress={handleSendOtp}
+            onPress={handleChangePassword}
             disabled={loading}
-            activeOpacity={0.8}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.buttonText}>Send OTP</Text>
+              <Text style={styles.buttonText}>Update Password</Text>
             )}
           </TouchableOpacity>
         </View>
+
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -132,5 +149,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#2563eb",
     marginVertical: 8,
+    fontSize: 14,
   },
 });
