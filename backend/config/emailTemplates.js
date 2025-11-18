@@ -59,6 +59,7 @@ export const PASSWORD_RESET_TEMPLATE = `
 </head>
 
 <body>
+<img src="https://github.com/Roshan-Metrix/Waste_Managment_Authority_MobileApp/blob/master/frontend/assets/icon.png" alt="logo" width="100" height="100"/>
   <table width="100%" cellspacing="0" cellpadding="0" border="0" align="center" bgcolor="#F6FAFB">
     <tbody>
       <tr>
@@ -168,6 +169,7 @@ export const PASSWORD_RESET_SUCCESSFULLY_TEMPLATE  = `
 </head>
 
 <body>
+<img src="https://github.com/Roshan-Metrix/Waste_Managment_Authority_MobileApp/blob/master/frontend/assets/icon.png" alt="logo" width="100" height="100"/>
   <table width="100%" cellspacing="0" cellpadding="0" border="0" align="center" bgcolor="#F6FAFB">
     <tbody>
       <tr>

@@ -311,7 +311,20 @@ export const sendPasswordResetOtp = async (req, res) => {
   if (!email) return res.json({ success: false, message: "Email is Required" });
 
   try {
-    const user = await userModel.findOne({ email });
+     let user = null;
+
+    // Check Admin
+    user = await adminModel.findOne({ email });
+
+    // Check Store
+    if (!user) {
+      user = await storeModel.findOne({ email });
+    }
+
+    // Check Manager
+    if (!user) {
+      user = await managerModel.findOne({ email });
+    }
 
     if (!user) return res.json({ success: false, message: "User Not Found" });
 
