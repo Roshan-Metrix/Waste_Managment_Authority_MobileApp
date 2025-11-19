@@ -213,7 +213,7 @@ export default function ViewManagersScreen({ navigation }) {
     fetchManagers();
   }, []);
 
-  // 🔍 Filter managers on search
+  //  Filter managers on search
   useEffect(() => {
     const s = search.toLowerCase();
 

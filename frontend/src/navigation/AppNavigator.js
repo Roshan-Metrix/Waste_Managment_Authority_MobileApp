@@ -6,7 +6,6 @@ import { AuthContext } from "../context/AuthContext";
 // Common Screens
 import HomeScreen from "../screens/HomeScreen";
 import LoginScreen from "../screens/LoginScreen";
-// import RegisterScreen from "../screens/RegisterScreen";
 import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
 import ResetPasswordScreen from "../screens/ResetPasswordScreen";
 import UserScreen from "../screens/UserScreen";
@@ -34,12 +33,11 @@ import AddManagersScreen from "../screens/Admin/ManageManagers/AddManagersScreen
 import ExportDataScreen from "../screens/Manager/ExportDataScreen";
 import ProcessTransactionScreen from "../screens/Manager/ProcessTransactionScreen";
 import ManageDataManagerScreen from "../screens/Manager/ManageDataManagerScreen";
-import ManageStaffScreen from "../screens/Manager/ManageStaffScreen";
 import HistoryManagersScreen from "../screens/Manager/HistoryManagersScreen";
-import AddEntryScreen from "../screens/Manager/AddEntryScreen";
-import CheckDataScreen from "../screens/Manager/CheckDataScreen";
 import HistoryStaffScreen from "../screens/Manager/HistoryManagersScreen";
 import ViewTasksScreen from "../screens/Manager/ViewTasksScreen";
+import ManageOwnStoreManagersScreen from "../screens/Manager/ManageOwnStoreManagersScreen";
+import ViewOwnStoreManagersScreen from "../screens/Manager/ViewOwnStoreManagersScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -91,14 +89,13 @@ export default function AppNavigator() {
 
             {/* Manager Screens */}
             <Stack.Screen name="ManageDataManagerScreen" component={ManageDataManagerScreen} />
-            <Stack.Screen name="ManageStaffScreen" component={ManageStaffScreen} />
+            <Stack.Screen name="ManageOwnStoreManagersScreen" component={ManageOwnStoreManagersScreen} />
             <Stack.Screen name="HistoryManagersScreen" component={HistoryManagersScreen} />
             <Stack.Screen name="ExportDataScreen" component={ExportDataScreen} />
             <Stack.Screen name="ProcessTransactionScreen" component={ProcessTransactionScreen} />
-            <Stack.Screen name="AddEntryScreen" component={AddEntryScreen} />
             <Stack.Screen name="ViewTasksScreen" component={ViewTasksScreen} />
-            <Stack.Screen name="CheckDataScreen" component={CheckDataScreen} />
             <Stack.Screen name="HistoryStaffScreen" component={HistoryStaffScreen} />
+            <Stack.Screen name="ViewOwnStoreManagersScreen" component={ViewOwnStoreManagersScreen} />
           </>
         )}
       </Stack.Navigator>

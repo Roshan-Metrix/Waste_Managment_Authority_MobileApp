@@ -29,7 +29,7 @@ const managerMiddleware = async (req, res, next) => {
       req.user = decoded;
       req.store = store;
 
-      console.log(req.user, req.store);
+    //   console.log(req.user, req.store);
 
       return next();
     } else {

@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-export default function ManageManagerScreen({ navigation }) {
+export default function ManageOwnStoreManagersScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
@@ -30,7 +30,7 @@ export default function ManageManagerScreen({ navigation }) {
           <MaterialIcons name="supervisor-account" size={60} color="#2563eb" />
         </View>
 
-        <Text style={styles.subTitle}>Manager Control Panel</Text>
+        <Text style={styles.subTitle}>Manager Control Panels</Text>
         <Text style={styles.desc}>
           Manage all store managers and staff accounts here. You can add new
           users, edit existing ones, or remove inactive accounts.
@@ -48,7 +48,7 @@ export default function ManageManagerScreen({ navigation }) {
 
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => navigation.navigate("ViewManagersScreen")}
+            onPress={() => navigation.navigate("ViewOwnStoreManagersScreen")}
           >
             <MaterialIcons name="people" size={22} color="#fff" />
             <Text style={styles.actionText}>View All Managers</Text>
