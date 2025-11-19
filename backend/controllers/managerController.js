@@ -33,30 +33,31 @@ export const getAllManagers = async (req, res) => {
 // Get Managers of a Particular Store --> For Managers
 export const getParticularStoreManagers = async (req, res) => {
   try {
-    const { storeId } = req.params;
+    const storeId = req.store.storeId;
 
-    const managers = await managerModel.find({ storeId }).select("-password -__v");
+    const managers = await managerModel
+      .find({ storeId })
+      .select("-password -__v")
+      .lean();
 
-    const managerWithStore = await Promise.all(
-      managers.map(async (m) => {
-        const store = await storeModel.findOne({ storeId: m.storeId });
+    const store = await storeModel
+      .findOne({ storeId }) 
+      .lean();
 
-        return {
-          ...m.toObject(),
-          storeName: store ? store.name : "Unknown Store",
-          storeLocation: store ? store.storeLocation : "",
-        };
-      })
-    );
+    const managersWithStore = managers.map((m) => ({
+      ...m,
+      storeName: store?.name || "Unknown Store",
+      storeLocation: store?.storeLocation || "N/A",
+    }));
 
     return res.json({
       success: true,
-      count: managerWithStore.length,
-      managers: managerWithStore,
+      count: managersWithStore.length,
+      managers: managersWithStore,
     });
 
   } catch (error) {
-    console.log("Error in getParticularStoreManagers Controller:", error);
+    console.log("Error in getParticularStoreManagers:", error);
     return res.json({ success: false, message: error.message });
   }
 };

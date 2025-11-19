@@ -4,9 +4,10 @@ import authMiddleware from '../middlewares/authMiddleware.js';
 import authVendorMiddleware from '../middlewares/authVendorMiddleware.js';
 import { getVendorLoggedInDetails, logoutVendor, vendorLogin, vendorRegister } from '../controllers/vendorController.js';
 import { getAllAdmins } from '../controllers/adminController.js';
-import { getAllManagers } from '../controllers/managerController.js';
+import { getAllManagers, getParticularStoreManagers } from '../controllers/managerController.js';
 import adminMiddleware from '../middlewares/adminMiddleware.js';
 import { deleteStore, getAllStores } from '../controllers/storeController.js';
+import managerMiddleware from '../middlewares/managerMiddleware.js';
 
 const authRouter = express.Router();
 
@@ -27,6 +28,7 @@ authRouter.get('/get-all-managers',adminMiddleware,getAllManagers);
 
 //manager
 authRouter.post('/registerManager',authMiddleware,registerManager);
+authRouter.get('/manager/get-store-managers',authMiddleware,managerMiddleware,getParticularStoreManagers);
 
 //vendor
 authRouter.get('/vendor/profile',authVendorMiddleware,getVendorLoggedInDetails);
