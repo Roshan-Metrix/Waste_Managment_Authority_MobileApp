@@ -30,6 +30,18 @@ export const getAllManagers = async (req, res) => {
   }
 };
 
+export const getManagerProfile = async (req, res) => {
+  try {
+    const manager = req.user;
+    const store = req.store;
+
+    return res.json({ success: true, manager, store });
+  } catch (error) {
+    console.log("Error in getManagerProfile Controller:", error);
+    return res.json({ success: false, message: error.message });
+  }
+}
+
 // Get Managers of a Particular Store --> For Managers
 export const getParticularStoreManagers = async (req, res) => {
   try {
