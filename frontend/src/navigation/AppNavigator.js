@@ -37,7 +37,9 @@ import HistoryManagersScreen from "../screens/Manager/HistoryManagersScreen";
 import HistoryStaffScreen from "../screens/Manager/HistoryManagersScreen";
 import ViewTasksScreen from "../screens/Manager/ViewTasksScreen";
 import ManageOwnStoreManagersScreen from "../screens/Manager/ManageOwnStoreManagersScreen";
-import ViewOwnStoreManagersScreen from "../screens/Manager/ViewOwnStoreManagersScreen";
+import ViewOwnStoreManagersScreen from "../screens/Manager/ManageOtherManagers/ViewOwnStoreManagersScreen";
+import AddOtherManagersScreen from "../screens/Manager/ManageOtherManagers/AddOtherManagersScreen";
+
 
 const Stack = createNativeStackNavigator();
 
@@ -53,7 +55,6 @@ export default function AppNavigator() {
           <>
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="Login" component={LoginScreen} />
-            {/* <Stack.Screen name="Register" component={RegisterScreen} /> */}
             <Stack.Screen
               name="ForgotPassword"
               component={ForgotPasswordScreen}
@@ -96,6 +97,7 @@ export default function AppNavigator() {
             <Stack.Screen name="ViewTasksScreen" component={ViewTasksScreen} />
             <Stack.Screen name="HistoryStaffScreen" component={HistoryStaffScreen} />
             <Stack.Screen name="ViewOwnStoreManagersScreen" component={ViewOwnStoreManagersScreen} />
+            <Stack.Screen name="AddOtherManagersScreen" component={AddOtherManagersScreen} />
           </>
         )}
       </Stack.Navigator>

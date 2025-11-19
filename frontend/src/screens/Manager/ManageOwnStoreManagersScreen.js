@@ -40,7 +40,7 @@ export default function ManageOwnStoreManagersScreen({ navigation }) {
         <View style={styles.actionsContainer}>
           <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: "#22c55e" }]}
-            onPress={() => navigation.navigate("AddManagersScreen")}
+            onPress={() => navigation.navigate("AddOtherManagersScreen")}
           >
             <MaterialIcons name="person-add" size={22} color="#fff" />
             <Text style={styles.actionText}>Add Manager</Text>
