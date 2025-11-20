@@ -168,7 +168,7 @@ export default function AddOtherManagersScreen({ navigation }) {
               style={styles.inputField}
               placeholder="Store Id"
               value={storeId}
-              onChangeText={setStoreId}
+              onChangeText={setStoreId}\
             />
           </View> */}
 

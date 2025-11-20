@@ -4,7 +4,7 @@ export default function HomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <View>
-        <Image source={require("../../assets/icon.png")} style={styles.image} />
+        <Image source={require("../../assets/splash-icon.png")} style={styles.image} />
       </View>
       {/* Tagline */}
       <Text style={styles.tagline}>SPORT FOR ALL - ALL FOR SPORTS</Text>

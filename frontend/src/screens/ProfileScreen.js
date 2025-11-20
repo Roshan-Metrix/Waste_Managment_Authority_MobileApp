@@ -116,10 +116,10 @@ export default function ProfileScreen({ navigation }) {
       </TouchableOpacity>
 
       {/* Info Note */}
-      <View style={styles.infoBox}>
+      {/* <View style={styles.infoBox}>
         <MaterialIcons name="info" size={22} color="#2563eb" />
         <Text style={styles.infoText}>This profile is linked to your Decathlon internal account.</Text>
-      </View>
+      </View> */}
     </View>
   );
 }

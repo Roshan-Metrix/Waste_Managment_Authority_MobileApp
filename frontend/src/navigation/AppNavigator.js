@@ -31,7 +31,6 @@ import AddManagersScreen from "../screens/Admin/ManageManagers/AddManagersScreen
 
 // Manager Screens
 import ExportDataScreen from "../screens/Manager/ExportDataScreen";
-import ProcessTransactionScreen from "../screens/Manager/ProcessTransactionScreen";
 import ManageDataManagerScreen from "../screens/Manager/ManageDataManagerScreen";
 import HistoryManagersScreen from "../screens/Manager/HistoryManagersScreen";
 import HistoryStaffScreen from "../screens/Manager/HistoryManagersScreen";
@@ -39,6 +38,10 @@ import ViewTasksScreen from "../screens/Manager/ViewTasksScreen";
 import ManageOwnStoreManagersScreen from "../screens/Manager/ManageOwnStoreManagersScreen";
 import ViewOwnStoreManagersScreen from "../screens/Manager/ManageOtherManagers/ViewOwnStoreManagersScreen";
 import AddOtherManagersScreen from "../screens/Manager/ManageOtherManagers/AddOtherManagersScreen";
+import AddTransactionScreen from "../screens/Manager/TransactionScreens/AddTransactionScreen";
+import ProcessTransactionScreen from "../screens/Manager/TransactionScreens/ProcessTransactionScreen";
+import CalibrationPhaseScreen from "../screens/Manager/TransactionScreens/CalibrationPhaseScreen";
+import BillingTransactionScreen from "../screens/Manager/TransactionScreens/BillingTransactionScreen";
 
 
 const Stack = createNativeStackNavigator();
@@ -93,11 +96,16 @@ export default function AppNavigator() {
             <Stack.Screen name="ManageOwnStoreManagersScreen" component={ManageOwnStoreManagersScreen} />
             <Stack.Screen name="HistoryManagersScreen" component={HistoryManagersScreen} />
             <Stack.Screen name="ExportDataScreen" component={ExportDataScreen} />
-            <Stack.Screen name="ProcessTransactionScreen" component={ProcessTransactionScreen} />
+            <Stack.Screen name="AddTransactionScreen" component={AddTransactionScreen} />
             <Stack.Screen name="ViewTasksScreen" component={ViewTasksScreen} />
             <Stack.Screen name="HistoryStaffScreen" component={HistoryStaffScreen} />
             <Stack.Screen name="ViewOwnStoreManagersScreen" component={ViewOwnStoreManagersScreen} />
             <Stack.Screen name="AddOtherManagersScreen" component={AddOtherManagersScreen} />
+            <Stack.Screen name="ProcessTransactionScreen" component={ProcessTransactionScreen} />
+            <Stack.Screen name="CalibrationPhaseScreen" component={CalibrationPhaseScreen} />
+            {/* <Stack.Screen name="CredentialVerificationScreen" component={CredentialVerificationScreen} /> */}
+            {/* <Stack.Screen name="VendorSignatureScreen" component={VendorSignatureScreen} /> */}
+            <Stack.Screen name="BillingTransactionScreen" component={BillingTransactionScreen} />
           </>
         )}
       </Stack.Navigator>

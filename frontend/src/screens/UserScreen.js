@@ -27,15 +27,11 @@ export default function UserScreen({ navigation }) {
       { title: "Data Analysis", icon: "query-stats", screen: "DataAnalysisScreen" },
     ],
     manager: [
-      { title: "Process Transaction", icon: "account-balance", screen: "ProcessTransactionScreen" },
+      { title: "Process Transaction", icon: "account-balance", screen: "AddTransactionScreen" },
       { title: "Manage Data", icon: "folder", screen: "ManageDataManagerScreen" },
-      // { title: "Manage Staff", icon: "supervisor-account", screen: "ManageStaffScreen" },
       { title: "Manage Managers", icon: "supervisor-account", screen: "ManageOwnStoreManagersScreen" },
-      { title: "Export Data", icon: "import-export", screen: "ExportDataScreen" },
-      // { title: "Add Entry", icon: "playlist-add", screen: "AddEntryScreen" },
       { title: "View Tasks", icon: "assignment", screen: "ViewTasksScreen" },
       { title: "History", icon: "history", screen: "HistoryManagersScreen" },
-      // { title: "Datas", icon: "assignment", screen: "CheckDataScreen" },
     ],
   };
 
