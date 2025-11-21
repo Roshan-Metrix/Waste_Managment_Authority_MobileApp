@@ -44,6 +44,7 @@ import CalibrationPhaseScreen from "../screens/Manager/TransactionScreens/Calibr
 import BillingTransactionScreen from "../screens/Manager/TransactionScreens/BillingTransactionScreen";
 import CredentialVerificationScreen from "../screens/Manager/TransactionScreens/CredentialVerificationScreen";
 import VendorSignatureScreen from "../screens/Manager/TransactionScreens/VendorSignatureScreen";
+import BillingExportTransactionScreen from "../screens/Manager/TransactionScreens/BillingExportTransactionScreen";
 
 
 const Stack = createNativeStackNavigator();
@@ -108,6 +109,7 @@ export default function AppNavigator() {
             <Stack.Screen name="CredentialVerificationScreen" component={CredentialVerificationScreen} />
             <Stack.Screen name="VendorSignatureScreen" component={VendorSignatureScreen} />
             <Stack.Screen name="BillingTransactionScreen" component={BillingTransactionScreen} />
+            <Stack.Screen name="BillingExportTransactionScreen" component={BillingExportTransactionScreen} />
           </>
         )}
       </Stack.Navigator>

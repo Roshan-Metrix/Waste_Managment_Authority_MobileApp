@@ -36,7 +36,7 @@ export default function LoginScreen({ navigation }) {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        {/* 🔵 Gradient Header */}
+        {/*  Gradient Header */}
         <LinearGradient
           colors={["#2563eb", "#1e3a8a"]}
           style={styles.header}
@@ -48,7 +48,7 @@ export default function LoginScreen({ navigation }) {
           </Text>
         </LinearGradient>
 
-        {/* 🔘 Card Section */}
+        {/*  Card Section */}
         <View style={styles.card}>
           <Input
             icon={<Ionicons name="mail-outline" size={22} color="#2563eb" />}
@@ -86,7 +86,7 @@ export default function LoginScreen({ navigation }) {
         </View>
 
         <Text style={styles.footer}>
-          Powered by Store Management System
+          Powered by Chennai Institute of Technology
         </Text>
       </ScrollView>
     </KeyboardAvoidingView>
