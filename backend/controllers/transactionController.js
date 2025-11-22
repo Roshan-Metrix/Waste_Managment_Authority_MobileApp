@@ -30,7 +30,7 @@ export const AddTransactionDetailController = async (req, res) => {
     });
     
     if (existingTransaction) {
-      return res.status(400).json({
+      res.status(400).json({
         message: "Transaction already exists for today",
         transactionId : existingTransaction.transactionId
       });
