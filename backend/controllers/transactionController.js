@@ -1,25 +1,43 @@
 import transactionModel from "../models/transactionModel.js";
-import { generateTransactionId } from "../utils/generateTransactionId.js";
+import {
+  CheckTodaysTransactionId,
+  generateTransactionId,
+} from "../utils/generateTransactionId.js";
 
 // Add Transaction Detail Controller
 export const AddTransactionDetailController = async (req, res) => {
   try {
-    const {
-      storeId,
-      storeName,
-      storeLocation,
-      managerName,
-      vendorName,
-    } = req.body;
+    const { storeId, storeName, storeLocation, managerName, vendorName } =
+      req.body;
 
     // Validate required fields
-    if (!storeId || !storeName || !storeLocation || !managerName || !vendorName) {
+    if (
+      !storeId ||
+      !storeName ||
+      !storeLocation ||
+      !managerName ||
+      !vendorName
+    ) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
     // Generate unique transactionId
+    const transactionIdWithoutCount = await CheckTodaysTransactionId(storeId);
+    
+    // Check for existing open transaction for the store
+    const existingTransaction = await transactionModel.findOne({
+      transactionId: { $regex: `^${transactionIdWithoutCount}` },
+    });
+    
+    if (existingTransaction) {
+      return res.status(400).json({
+        message: "Transaction already exists for today",
+        transactionId : existingTransaction.transactionId
+      });
+    }
+    
     const transactionId = await generateTransactionId(storeId);
-
+    
     const newTransaction = new transactionModel({
       transactionId,
       store: {
@@ -41,7 +59,6 @@ export const AddTransactionDetailController = async (req, res) => {
       message: "Transaction created successfully",
       transactionId,
     });
-
   } catch (error) {
     console.log("Error in AddTransactionDetailController:", error);
     return res.status(500).json({ message: "Internal Server Error" });
@@ -109,7 +126,9 @@ export const TransactionCalibrationController = async (req, res) => {
     }
 
     if (fetchWeight !== enterWeight) {
-      return res.status(400).json({ message: "Calibration failed, Try again!" });
+      return res
+        .status(400)
+        .json({ message: "Calibration failed, Try again!" });
     }
 
     const transaction = await transactionModel.findOne({ transactionId });
