@@ -31,6 +31,7 @@ export const AddTransactionDetailController = async (req, res) => {
     
     if (existingTransaction) {
       return res.status(400).json({
+        success: false,
         message: "Transaction already exists for today",
         transactionId : existingTransaction.transactionId
       });
@@ -48,20 +49,21 @@ export const AddTransactionDetailController = async (req, res) => {
       managerName,
       vendorName,
       calibration: {
-        image: "", // default empty
+        image: "", 
       },
-      items: [], // initially empty
+      items: [], 
     });
 
     await newTransaction.save();
 
     return res.status(201).json({
+      success: true,
       message: "Transaction created successfully",
       transactionId,
     });
   } catch (error) {
     console.log("Error in AddTransactionDetailController:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -80,6 +82,7 @@ export const TransactionItemsController = async (req, res) => {
     }
     if (!weightSource || !["manually", "system"].includes(weightSource)) {
       return res.status(400).json({
+        success: false,
         message: "weightSource must be 'manually' or 'system'",
       });
     }
@@ -87,7 +90,7 @@ export const TransactionItemsController = async (req, res) => {
     // Find transaction
     const transaction = await transactionModel.findOne({ transactionId });
     if (!transaction) {
-      return res.status(404).json({ message: "Transaction not found" });
+      return res.status(404).json({ success: false, message: "Transaction not found" });
     }
 
     // Auto-generate item number
@@ -106,12 +109,13 @@ export const TransactionItemsController = async (req, res) => {
     await transaction.save();
 
     return res.status(200).json({
+      success: true,
       message: "Item added successfully",
       items: transaction.items,
     });
   } catch (error) {
     console.log("Error in TransactionItemsController:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -128,7 +132,7 @@ export const TransactionCalibrationController = async (req, res) => {
     if (fetchWeight !== enterWeight) {
       return res
         .status(400)
-        .json({ message: "Calibration failed, Try again!" });
+        .json({ success: false, message: "Calibration failed, Try again!" });
     }
 
     const transaction = await transactionModel.findOne({ transactionId });
@@ -142,12 +146,13 @@ export const TransactionCalibrationController = async (req, res) => {
     await transaction.save();
 
     return res.status(200).json({
+      success: true,
       message: "Calibration added successfully",
       calibration: transaction.calibration,
     });
   } catch (error) {
     console.log("Error in TransactionCalibrationController:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -184,12 +189,13 @@ export const TodaysTransactionController = async (req, res) => {
     }));
 
     return res.status(200).json({
+      success: true,
       message: "Today's transactions fetched successfully",
       transactions: formattedTransactions,
     });
   } catch (error) {
     console.log("Error in TodaysTransactionController:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -232,11 +238,12 @@ export const AllStoreTodaysTransactionsController = async (req, res) => {
     }));
 
     return res.status(200).json({
+      success: true,
       message: "Today's transactions fetched successfully",
       transactions: formattedTransactions,
     });
   } catch (error) {
     console.log("Error in AllStoreTodaysTransactionsController:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
