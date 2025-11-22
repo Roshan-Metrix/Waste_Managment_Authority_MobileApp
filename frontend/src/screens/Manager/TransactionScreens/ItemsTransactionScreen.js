@@ -11,7 +11,7 @@ import {
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { MaterialIcons } from "@expo/vector-icons";
 
-export default function BillingTransactionScreen({ navigation }) {
+export default function ItemsTransactionScreen({ navigation }) {
   const cameraRef = useRef(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [photo, setPhoto] = useState(null);
@@ -128,7 +128,7 @@ export default function BillingTransactionScreen({ navigation }) {
             value={weight1}
             onChangeText={setWeight1}
           />
-          <Text style={styles.gmText}>gm</Text>
+          <Text style={styles.gmText}>kg</Text>
         </View>
 
         {/* WEIGHT INPUT */}
@@ -140,7 +140,7 @@ export default function BillingTransactionScreen({ navigation }) {
             value={weight2}
             onChangeText={setWeight2}
           />
-          <Text style={styles.gmText}>gm</Text>
+          <Text style={styles.gmText}>kg</Text>
         </View>
 
         {/* CALIBRATE BUTTON */}

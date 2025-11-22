@@ -79,7 +79,7 @@ export default function CalibrationPhaseScreen({ navigation }) {
           value={weight1}
           onChangeText={setWeight1}
         />
-        <Text style={styles.gmText}>gm</Text>
+        <Text style={styles.gmText}>kg</Text>
       </View>
 
       {/* WEIGHT INPUT */}
@@ -91,7 +91,7 @@ export default function CalibrationPhaseScreen({ navigation }) {
           value={weight2}
           onChangeText={setWeight2}
         />
-        <Text style={styles.gmText}>gm</Text>
+        <Text style={styles.gmText}>kg</Text>
       </View>
 
       {/* CALIBRATE BUTTON */}

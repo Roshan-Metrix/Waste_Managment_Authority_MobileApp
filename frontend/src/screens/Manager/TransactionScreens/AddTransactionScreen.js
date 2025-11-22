@@ -18,6 +18,7 @@ export default function AddTransactionScreen({ navigation }) {
 
   const [storeId, setStoreId] = useState("");
   const [storeName, setStoreName] = useState("");
+  const [storeLocation, setStoreLocation] = useState("");
   const [managerName, setManagerName] = useState("");
 
   const [transactionId, setTransactionId] = useState("");
@@ -42,6 +43,7 @@ export default function AddTransactionScreen({ navigation }) {
       if (res.data.success) {
         setStoreId(res.data.store.storeId);
         setStoreName(res.data.store.name);
+        setStoreLocation(res.data.store.storeLocation);
         setManagerName(res.data.manager.name || "Manager");
       }
     } catch (err) {
@@ -98,6 +100,16 @@ export default function AddTransactionScreen({ navigation }) {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.form}>
+
+            {/* Transaction ID */}
+            <Text style={styles.label}>Transaction ID</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter Transaction ID"
+              value={transactionId}
+              onChangeText={setTransactionId}
+            />
+            
           {/* Store ID */}
           <Text style={styles.label}>Store ID</Text>
           <TextInput style={styles.input} value={storeId} editable={false} />
@@ -105,6 +117,10 @@ export default function AddTransactionScreen({ navigation }) {
           {/* Store Name */}
           <Text style={styles.label}>Store Name</Text>
           <TextInput style={styles.input} value={storeName} editable={false} />
+
+          {/* Store Location */}
+          <Text style={styles.label}>Store Location</Text>
+          <TextInput style={styles.input} value={storeLocation} editable={false} />
 
           {/* Manager Name */}
           <Text style={styles.label}>Manager Name</Text>
@@ -136,14 +152,6 @@ export default function AddTransactionScreen({ navigation }) {
             />
           )}
 
-          {/* Transaction ID */}
-          <Text style={styles.label}>Transaction ID</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter Transaction ID"
-            value={transactionId}
-            onChangeText={setTransactionId}
-          />
 
           {/* Submit Button */}
           <TouchableOpacity

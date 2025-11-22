@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import HomeButton from "../../../Components/HomeButton"
 
 export default function ProcessTransactionScreen({ navigation }) {
   const [calibrationStatus] = useState("Completed"); 
@@ -25,6 +26,7 @@ export default function ProcessTransactionScreen({ navigation }) {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Process Transaction</Text>
         <View style={{ width: 26 }} />
+        <HomeButton />
       </View>
 
       {/* Top Icon */}
@@ -75,7 +77,7 @@ export default function ProcessTransactionScreen({ navigation }) {
         {/* ---------- FINAL SUBMIT BUTTON ---------- */}
         <TouchableOpacity
           disabled={!isReady}
-          onPress={() => navigation.navigate("BillingTransactionScreen")}
+          onPress={() => navigation.navigate("ItemsTransactionScreen")}
           style={[
             styles.finalButton,
             { backgroundColor: isReady ? "#2563eb" : "#94a3b8" },
@@ -107,6 +109,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "700",
     color: "#2563eb",
+    marginLeft: 15,
   },
 
   topIconWrapper: {

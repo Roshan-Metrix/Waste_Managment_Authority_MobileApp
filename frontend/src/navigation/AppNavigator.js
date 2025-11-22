@@ -41,10 +41,10 @@ import AddOtherManagersScreen from "../screens/Manager/ManageOtherManagers/AddOt
 import AddTransactionScreen from "../screens/Manager/TransactionScreens/AddTransactionScreen";
 import ProcessTransactionScreen from "../screens/Manager/TransactionScreens/ProcessTransactionScreen";
 import CalibrationPhaseScreen from "../screens/Manager/TransactionScreens/CalibrationPhaseScreen";
-import BillingTransactionScreen from "../screens/Manager/TransactionScreens/BillingTransactionScreen";
 import CredentialVerificationScreen from "../screens/Manager/TransactionScreens/CredentialVerificationScreen";
 import VendorSignatureScreen from "../screens/Manager/TransactionScreens/VendorSignatureScreen";
 import BillingExportTransactionScreen from "../screens/Manager/TransactionScreens/BillingExportTransactionScreen";
+import ItemsTransactionScreen from "../screens/Manager/TransactionScreens/ItemsTransactionScreen";
 
 
 const Stack = createNativeStackNavigator();
@@ -73,7 +73,7 @@ export default function AppNavigator() {
         ) : (
           <>
             {/* Main user home */}
-            <Stack.Screen name="User" component={UserScreen} />
+            <Stack.Screen name="UserScreen" component={UserScreen} />
             <Stack.Screen name="SavedDataScreen" component={SavedDataScreen} />
             <Stack.Screen name="SearchScreen" component={SearchScreen} />
             <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
@@ -108,7 +108,7 @@ export default function AppNavigator() {
             <Stack.Screen name="CalibrationPhaseScreen" component={CalibrationPhaseScreen} />
             <Stack.Screen name="CredentialVerificationScreen" component={CredentialVerificationScreen} />
             <Stack.Screen name="VendorSignatureScreen" component={VendorSignatureScreen} />
-            <Stack.Screen name="BillingTransactionScreen" component={BillingTransactionScreen} />
+            <Stack.Screen name="ItemsTransactionScreen" component={ItemsTransactionScreen} />
             <Stack.Screen name="BillingExportTransactionScreen" component={BillingExportTransactionScreen} />
           </>
         )}

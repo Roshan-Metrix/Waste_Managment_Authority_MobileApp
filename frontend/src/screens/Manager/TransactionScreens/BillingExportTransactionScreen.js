@@ -10,21 +10,16 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
-import { CameraView, useCameraPermissions } from "expo-camera";
 import api from "../../../api/api";
 
 export default function BillingExportTransactionScreen({ navigation }) {
   const [store, setStore] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [cameraOpen, setCameraOpen] = useState(false);
-  const [photo, setPhoto] = useState(null);
-  const [permission, requestPermission] = useCameraPermissions();
-  const [weight1, setWeight1] = useState("");
-  const [weight2, setWeight2] = useState("");
 
+  const [managerSignature, setManagerSignature] = useState(null);
   const [vendorSignature, setVendorSignature] = useState(null);
 
-  // Fetch store + manager store
+  // Fetch store + manager profile
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -38,28 +33,20 @@ export default function BillingExportTransactionScreen({ navigation }) {
     fetchProfile();
   }, []);
 
-  // Load vendor signature from AsyncStorage
+  // Load both signatures from async storage
   useEffect(() => {
-    loadVendorSignature();
+    loadSignatures();
   }, []);
 
-  const loadVendorSignature = async () => {
-    const savedSig = await AsyncStorage.getItem("vendor_signature");
-    if (savedSig) setVendorSignature(savedSig);
-  };
+    // await AsyncStorage.removeItem("vendorSignature");
 
-  if (!permission) return <View />;
-  if (!permission.granted)
-    return (
-      <View style={styles.permissionContainer}>
-        <TouchableOpacity
-          onPress={requestPermission}
-          style={styles.permissionBtn}
-        >
-          <Text style={{ color: "#fff" }}>Allow Camera Permission</Text>
-        </TouchableOpacity>
-      </View>
-    );
+  const loadSignatures = async () => {
+    const managerSig = await AsyncStorage.getItem("managerSignature");
+    const vendorSig = await AsyncStorage.getItem("vendorSignature");
+
+    if (managerSig) setManagerSignature(managerSig);
+    if (vendorSig) setVendorSignature(vendorSig);
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: "#f9fafb" }}>
@@ -71,7 +58,6 @@ export default function BillingExportTransactionScreen({ navigation }) {
 
         <Text style={styles.headerTitle}>Billing Transaction</Text>
 
-        {/* Export Button */}
         <TouchableOpacity
           onPress={() => navigation.navigate("ExportDataScreen")}
         >
@@ -80,7 +66,7 @@ export default function BillingExportTransactionScreen({ navigation }) {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 20 }}>
-        {/* BILL LAYOUT */}
+        {/* BILL AREA */}
         <View style={styles.billBox}>
           <Text style={styles.storeName}>
             {store?.name || "Store Name Loading..."}
@@ -111,27 +97,23 @@ export default function BillingExportTransactionScreen({ navigation }) {
 
             <View style={styles.tableRow}>
               <Text style={styles.tableData}>1</Text>
-
               <View style={styles.centerImageWrapper}>
                 <Image
                   source={{ uri: "https://picsum.photos/50" }}
                   style={styles.itemImage}
                 />
               </View>
-
               <Text style={styles.tableData}>120 gm</Text>
             </View>
 
             <View style={styles.tableRow}>
               <Text style={styles.tableData}>2</Text>
-
               <View style={styles.centerImageWrapper}>
                 <Image
                   source={{ uri: "https://picsum.photos/51" }}
                   style={styles.itemImage}
                 />
               </View>
-
               <Text style={styles.tableData}>80 gm</Text>
             </View>
 
@@ -146,25 +128,33 @@ export default function BillingExportTransactionScreen({ navigation }) {
             </View>
           </View>
 
-          {/* Total in Words */}
+          {/* Total Words */}
           <Text style={styles.totalWords}>
             Grand Total (in words): _______________________________________
           </Text>
 
-          {/* SIGNATURES SECTION */}
-          <Text style={styles.subHeading}>Signatures</Text>
+          {/* SIGNATURES */}
+          {/* <Text style={styles.subHeading}>Signatures</Text> */}
 
           <View style={styles.signatureRow}>
-            {/* Manager Signature Placeholder */}
+
+            {/* MANAGER SIGNATURE */}
             <View style={{ alignItems: "center" }}>
-              <Image
-                source={{ uri: "https://picsum.photos/70" }}
-                style={styles.signatureImg}
-              />
+              {managerSignature ? (
+                <Image
+                  source={{ uri: managerSignature }}
+                  style={styles.signatureImg}
+                />
+              ) : (
+                <Image
+                  source={{ uri: "https://picsum.photos/55" }}
+                  style={styles.signatureImg}
+                />
+              )}
               <Text style={styles.signatureLabel}>Manager Signature</Text>
             </View>
 
-            {/* Vendor Signature */}
+            {/* VENDOR SIGNATURE */}
             <View style={{ alignItems: "center" }}>
               {!vendorSignature ? (
                 <TouchableOpacity
@@ -191,8 +181,12 @@ export default function BillingExportTransactionScreen({ navigation }) {
             * Above bill is true and correct *
           </Text>
         </View>
-        {/* Export Button */}
-        <TouchableOpacity style={styles.exportBtn} onPress={() => navigation.navigate("ExportDataScreen")}>
+
+        {/* Export */}
+        <TouchableOpacity
+          style={styles.exportBtn}
+          onPress={() => navigation.navigate("ExportDataScreen")}
+        >
           <Text style={styles.exportText}>Export Bill</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -226,6 +220,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     color: "#555",
   },
+
   rowBetween: { marginVertical: 8 },
   label: { fontSize: 15, marginVertical: 5, color: "#333" },
 
@@ -265,14 +260,15 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     padding: 6,
   },
+
   totalWords: { marginTop: 10, fontSize: 13, color: "#333" },
 
-  subHeading: {
-    fontSize: 18,
-    fontWeight: "700",
-    marginTop: 20,
-    marginBottom: 10,
-  },
+  // subHeading: {
+  //   fontSize: 18,
+  //   fontWeight: "700",
+  //   marginTop: 20,
+  //   marginBottom: 10,
+  // },
 
   signatureRow: {
     flexDirection: "row",
@@ -302,16 +298,6 @@ const styles = StyleSheet.create({
     color: "#777",
   },
 
-  permissionContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  permissionBtn: {
-    backgroundColor: "#2563eb",
-    padding: 12,
-    borderRadius: 8,
-  },
   exportBtn: {
     backgroundColor: "#2563eb",
     flexDirection: "row",
@@ -325,6 +311,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
-    marginLeft: 8,
   },
 });
+
