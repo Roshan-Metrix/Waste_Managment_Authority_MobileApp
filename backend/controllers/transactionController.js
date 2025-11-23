@@ -18,7 +18,7 @@ export const AddTransactionDetailController = async (req, res) => {
       !managerName ||
       !vendorName
     ) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ success:false, message: "All fields are required" });
     }
 
     // Generate unique transactionId
@@ -75,10 +75,10 @@ export const TransactionItemsController = async (req, res) => {
 
     // Validate required fields
     if (!materialType) {
-      return res.status(400).json({ message: "materialType is required" });
+      return res.status(400).json({ success:false, message: "materialType is required" });
     }
     if (!weight) {
-      return res.status(400).json({ message: "weight is required" });
+      return res.status(400).json({ success:false, message: "weight is required" });
     }
     if (!weightSource || !["manually", "system"].includes(weightSource)) {
       return res.status(400).json({
@@ -126,7 +126,7 @@ export const TransactionCalibrationController = async (req, res) => {
     const { image, fetchWeight, enterWeight } = req.body;
 
     if (!image || !fetchWeight || !enterWeight) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ success:false, message: "All fields are required" });
     }
 
     if (fetchWeight !== enterWeight) {
@@ -138,7 +138,7 @@ export const TransactionCalibrationController = async (req, res) => {
     const transaction = await transactionModel.findOne({ transactionId });
 
     if (!transaction) {
-      return res.status(404).json({ message: "Transaction not found" });
+      return res.status(404).json({ success:false, message: "Transaction not found" });
     }
 
     transaction.calibration = { image };
