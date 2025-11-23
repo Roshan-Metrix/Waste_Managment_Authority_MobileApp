@@ -305,9 +305,7 @@ export default function ItemsTransactionScreen({ navigation }) {
     );
   }
 
-  // -------------------------
   // CAPTURE IMAGE + OCR
-  // -------------------------
   const handleCapture = async () => {
     try {
       const picture = await cameraRef.current.takePictureAsync({
@@ -315,7 +313,7 @@ export default function ItemsTransactionScreen({ navigation }) {
         quality: 0.5,
       });
 
-      setPhoto(picture); // Store the full picture object
+      setPhoto(picture); 
       setLoading(true);
 
       // OCR
@@ -337,69 +335,71 @@ export default function ItemsTransactionScreen({ navigation }) {
     }
   };
 
-  // ADD ITEM
-  const handleAddItem = async () => {
-    if (!materialType) {
-      alert("Please select material type.");
-      return;
-    }
+ // Add Item
+const handleAddItem = async () => {
+  if (!materialType) {
+    alert("Please select material type.");
+    return;
+  }
 
-    if (!photo) {
-      alert("Please capture an image.");
-      return;
-    }
+  if (!photo) {
+    alert("Please capture an image.");
+    return;
+  }
 
-    // Determine weight source
-    let weight = "";
-    let weightSource = "";
+  // Determine weight + weightSource
+  let weight = "";
+  let weightSource = "";
 
-    if (enterWeight.trim() !== "") {
-      weight = enterWeight;
-      weightSource = "manual";
-    } else {
-      weight = fetchWeight;
-      weightSource = "system";
-    }
+  if (enterWeight.trim() !== "") {
+    weight = enterWeight;
+    weightSource = "manually";   // ✅ FIXED SPELLING
+  } else {
+    weight = fetchWeight;
+    weightSource = "system";     // ✅ VALID
+  }
 
-    if (!weight) {
-      alert("No weight detected or entered.");
-      return;
-    }
+  if (!weight) {
+    alert("No weight detected or entered.");
+    return;
+  }
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const stored = await AsyncStorage.getItem("todayTransaction");
-      const parsed = JSON.parse(stored);
-      const transactionId = parsed?.transactionId;
+    const stored = await AsyncStorage.getItem("todayTransaction");
+    const parsed = JSON.parse(stored);
+    const transactionId = parsed?.transactionId;
 
-      const res = await api.post(
-        `/manager/transaction/transaction-items/${transactionId}`,
-        {
-          materialType,
-          weight,
-          weightSource,
-          image: photo.base64,
-        }
-      );
-
-      setLoading(false);
-
-      if (res.data.success) {
-        alert("Item added .");
-        setPhoto("");
-        setMaterialType("");
-        setFetchWeight("");
-        setEnterWeight("");
-      } else {
-        alert("Item not added.");
+    const res = await api.post(
+      `/manager/transaction/transaction-items/${transactionId}`,
+      {
+        materialType,
+        weight,
+        weightSource,
+        image: photo.base64,
       }
-    } catch (err) {
-      setLoading(false);
-      console.log(err);
-      alert("Error adding item.");
+    );
+
+    setLoading(false);
+
+    if (res.data.success) {
+      alert("Item added successfully!");
+      // Reset UI
+      setPhoto(null);
+      setMaterialType("");
+      setFetchWeight("");
+      setEnterWeight("");
+    } else {
+      alert("Item not added.");
     }
-  };
+  } catch (err) {
+    setLoading(false);
+    console.log("ADD ITEM ERROR:", err?.response?.data || err);
+    alert(err?.response?.data?.message || "Error adding item.");
+  }
+};
+
 
   return (
     <View style={styles.container}>
@@ -436,16 +436,6 @@ export default function ItemsTransactionScreen({ navigation }) {
           <MaterialIcons name="photo-camera" size={22} color="#fff" />
           <Text style={styles.captureText}>Capture</Text>
         </TouchableOpacity>
-
-        {/* RECAPTURE BUTTON */}
-        {photo && (
-          <TouchableOpacity
-            style={styles.retakeBtn}
-            onPress={handleCapture}
-          >
-            <Text style={styles.retakeText}>Capture Image Again</Text>
-          </TouchableOpacity>
-        )}
 
         {/* MATERIAL DROPDOWN */}
         <TouchableOpacity
@@ -503,7 +493,7 @@ export default function ItemsTransactionScreen({ navigation }) {
             style={[styles.input, { color: "#6B7280" }]}
             keyboardType="numeric"
             value={fetchWeight}
-            editable={false} // DISABLE EDITING
+            editable={false} 
           />
           <Text style={styles.gmText}>kg</Text>
         </View>
@@ -579,21 +569,6 @@ const styles = StyleSheet.create({
   },
 
   captureText: { color: "#fff", marginLeft: 8, fontWeight: "700" },
-
-  retakeBtn: {
-    backgroundColor: "#6B7280",
-    paddingVertical: 10,
-    width: "50%",
-    alignSelf: "center",
-    borderRadius: 10,
-    marginTop: 10,
-  },
-
-  retakeText: {
-    textAlign: "center",
-    color: "white",
-    fontWeight: "600",
-  },
 
   dropdownBox: {
     marginTop: 20,
@@ -686,167 +661,3 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
 });
-
-
-// ----------------- STYLES -----------------
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: "#f9fafb",
-//     paddingHorizontal: 20,
-//   },
-
-//   header: {
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//     alignItems: "center",
-//     paddingTop: 60,
-//     paddingBottom: 15,
-//     backgroundColor: "#fff",
-//     marginHorizontal: -20,
-//     paddingHorizontal: 20,
-//     elevation: 3,
-//   },
-
-//   headerTitle: {
-//     fontSize: 22,
-//     fontWeight: "700",
-//     color: "#2563eb",
-//   },
-
-//   capturePhotoHeading: {
-//     marginTop: 20,
-//     marginLeft: 10,
-//     fontWeight: "600",
-//     fontSize: 20,
-//     color: "#374151",
-//   },
-
-//   cameraBox: {
-//     width: "100%",
-//     height: 280,
-//     backgroundColor: "#e5e7eb",
-//     borderRadius: 16,
-//     overflow: "hidden",
-//     marginTop: 18,
-//   },
-
-//   camera: { flex: 1 },
-
-//   capturedImage: {
-//     width: "100%",
-//     height: "100%",
-//   },
-
-//   captureBtn: {
-//     backgroundColor: "#2563eb",
-//     flexDirection: "row",
-//     alignItems: "center",
-//     justifyContent: "center",
-//     paddingVertical: 12,
-//     borderRadius: 12,
-//     marginTop: 15,
-//   },
-
-//   captureText: {
-//     color: "#fff",
-//     fontSize: 16,
-//     fontWeight: "600",
-//     marginLeft: 8,
-//   },
-
-//   // --- DROPDOWN ---
-//   dropdownLabel: {
-//     marginTop: 20,
-//     fontSize: 16,
-//     fontWeight: "600",
-//     marginLeft: 4,
-//     color: "#374151",
-//   },
-
-//   dropdownBox: {
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//     alignItems: "center",
-//     backgroundColor: "#fff",
-//     borderWidth: 1,
-//     borderColor: "#d1d5db",
-//     paddingHorizontal: 12,
-//     paddingVertical: 14,
-//     borderRadius: 12,
-//     marginTop: 10,
-//   },
-
-//   dropdownText: {
-//     fontSize: 16,
-//     color: "#374151",
-//   },
-
-//   dropdownList: {
-//     backgroundColor: "#fff",
-//     marginTop: 2,
-//     borderWidth: 1,
-//     borderColor: "#d1d5db",
-//     borderRadius: 12,
-//     overflow: "hidden",
-//   },
-
-//   dropdownItem: {
-//     paddingVertical: 14,
-//     paddingHorizontal: 15,
-//   },
-
-//   dropdownItemText: {
-//     fontSize: 16,
-//     color: "#111827",
-//   },
-
-//   // --- INPUTS ---
-//   inputBox: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     backgroundColor: "#fff",
-//     borderWidth: 1,
-//     borderColor: "#d1d5db",
-//     borderRadius: 12,
-//     paddingHorizontal: 12,
-//     marginTop: 15,
-//   },
-
-//   input: {
-//     flex: 1,
-//     paddingVertical: 12,
-//     fontSize: 16,
-//   },
-
-//   gmText: {
-//     fontSize: 16,
-//     fontWeight: "600",
-//     color: "#374151",
-//   },
-
-//   calibrateBtn: {
-//     backgroundColor: "#2563eb",
-//     paddingVertical: 14,
-//     borderRadius: 14,
-//     alignItems: "center",
-//     marginTop: 25,
-//   },
-
-//   calibrateText: {
-//     color: "#fff",
-//     fontSize: 17,
-//     fontWeight: "700",
-//   },
-
-//    loadingOverlay: {
-//     position: "absolute",
-//     left: 0,
-//     right: 0,
-//     top: 0,
-//     bottom: 0,
-//     backgroundColor: "rgba(0,0,0,0.6)",
-//     justifyContent: "center",
-//     alignItems: "center",
-//   },
-// });

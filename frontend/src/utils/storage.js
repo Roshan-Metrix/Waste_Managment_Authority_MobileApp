@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const saveTodayTransaction = async (transactionId) => {
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toLocaleString("en-CA", { timeZone: "Asia/Kolkata" }).split(",")[0];
   await AsyncStorage.setItem("todayTransaction", JSON.stringify({
     date: today,
     transactionId

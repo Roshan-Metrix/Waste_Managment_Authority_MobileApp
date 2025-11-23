@@ -12,6 +12,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { AuthContext } from "../context/AuthContext";
 import { SidebarMenu } from "../Components/SidebarMenu";
 import { getTodayTransaction, clearOldTransaction } from "../utils/storage";
+// import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function UserScreen({ navigation }) {
   const { user, logout } = useContext(AuthContext);
@@ -25,7 +26,8 @@ export default function UserScreen({ navigation }) {
 
 const goToTransaction = async () => {
   try {
-    const today = new Date().toISOString().split("T")[0];
+    
+    const today = new Date().toLocaleString("en-CA", { timeZone: "Asia/Kolkata" }).split(",")[0];
 
     const data = await getTodayTransaction();
 
@@ -38,7 +40,7 @@ const goToTransaction = async () => {
     try {
       parsed = typeof data === "string" ? JSON.parse(data) : data;
     } catch (err) {
-      console.log("JSON Parse failed → clearing storage");
+      console.log("JSON Parse failed -> clearing storage");
       await clearOldTransaction();
       return navigation.navigate("AddTransactionScreen");
     }

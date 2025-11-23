@@ -13,16 +13,19 @@ import { MaterialIcons } from "@expo/vector-icons";
 import DropDownPicker from "react-native-dropdown-picker";
 import api from "../../../api/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { saveTodayTransaction } from "../../../utils/storage";
+import {
+  clearOldTransaction,
+  saveTodayTransaction,
+} from "../../../utils/storage";
 
 export default function AddTransactionScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
-
+  const [sendingLoading, setSendingLoading] = useState(false);
   const [storeId, setStoreId] = useState("");
   const [storeName, setStoreName] = useState("");
   const [storeLocation, setStoreLocation] = useState("");
   const [managerName, setManagerName] = useState("");
-  const [transactionId, setTransactionId] = useState("");
+  // const [transactionId, setTransactionId] = useState("");
 
   // Vendor Dropdown
   const [vendorOpen, setVendorOpen] = useState(false);
@@ -55,7 +58,54 @@ export default function AddTransactionScreen({ navigation }) {
 
   useEffect(() => {
     fetchProfile();
+    clearOldTransaction();
   }, []);
+
+  //   const handleProcess = async () => {
+
+  //     if (!vendor) {
+  //       return Alert.alert("Missing", "Please select Vendor Name.");
+  //     }
+
+  //     if (vendor === "Others" && !otherVendor.trim()) {
+  //       return Alert.alert("Missing Field", "Please enter Vendor Name.");
+  //     }
+
+  //     try {
+  //       setSendingLoading(true);
+  //       const res = await api.post("/manager/transaction/add-transaction", {
+  //         storeId,
+  //         storeName,
+  //         storeLocation,
+  //         managerName,
+  //         vendorName: vendor === "Others" ? otherVendor : vendor,
+  //       });
+
+  //       const transactionId = res.data?.transactionId;
+  // console.log("Transaction ID:", transactionId);
+
+  //       if (!transactionId) {
+  //         return Alert.alert("Error", "Failed to create transaction.");
+  //       }
+
+  //       // SAVE TO ASYNC STORAGE
+  //       await saveTodayTransaction(transactionId);
+  //       setSendingLoading(false)
+  //       // Navigate
+  //       navigation.navigate("ProcessTransactionScreen");
+  //     } catch (error) {
+  //       // if (error.response?.data?.transactionId) {
+  //       //   const existingId = error.response.data.transactionId;
+
+  //         // Save existing id locally
+  //         // await saveTodayTransaction(existingId);
+
+  //         Alert.alert("Error", "Something went wrong while creating transaction.");
+  //         return navigation.navigate("UserScreen");
+  //         // }
+
+  //     }
+  //   };
 
   const handleProcess = async () => {
     if (!vendor) {
@@ -67,6 +117,8 @@ export default function AddTransactionScreen({ navigation }) {
     }
 
     try {
+      setSendingLoading(true);
+
       const res = await api.post("/manager/transaction/add-transaction", {
         storeId,
         storeName,
@@ -75,28 +127,26 @@ export default function AddTransactionScreen({ navigation }) {
         vendorName: vendor === "Others" ? otherVendor : vendor,
       });
 
-      const transactionId = res.data.transactionId;
+      console.log("API Response:", res.data);
+
+      const transactionId = res.data?.transactionId;
 
       if (!transactionId) {
+        setSendingLoading(false);
         return Alert.alert("Error", "Failed to create transaction.");
       }
 
       // SAVE TO ASYNC STORAGE
       await saveTodayTransaction(transactionId);
 
-      // Navigate
+      setSendingLoading(false);
+
       navigation.navigate("ProcessTransactionScreen");
     } catch (error) {
-      if (error.response?.data?.transactionId) {
-        const existingId = error.response.data.transactionId;
-
-        // Save existing id locally
-        await saveTodayTransaction(existingId);
-
-        return navigation.navigate("ProcessTransactionScreen");
-      }
-
+      console.log("Transaction Error:", error.response?.data || error.message);
       Alert.alert("Error", "Something went wrong while creating transaction.");
+      setSendingLoading(false);
+      return navigation.navigate("UserScreen");
     }
   };
 
@@ -174,6 +224,14 @@ export default function AddTransactionScreen({ navigation }) {
           <Text style={styles.processText}>Process Transaction</Text>
         </TouchableOpacity>
       </View>
+
+      {/* LOADING OVERLAY */}
+      {sendingLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#fff" />
+          <Text style={{ color: "#fff", marginTop: 10 }}>Processing...</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -259,5 +317,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     marginLeft: 8,
+  },
+
+  loadingOverlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
