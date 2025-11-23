@@ -9,41 +9,94 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
-import { CameraView, useCameraPermissions } from "expo-camera";
+
+import { CameraView, Camera } from "expo-camera";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { runOcrOnImage } from "../../../ocr/ocrService";
+import { parseWeight } from "../../../ocr/parseWeight";
 import api from "../../../api/api";
 
 export default function CalibrationPhaseScreen({ navigation }) {
   const cameraRef = useRef(null);
-  const [permission, requestPermission] = useCameraPermissions();
-
+  const [hasPermission, setHasPermission] = useState(null);
   const [photo, setPhoto] = useState(null);
   const [fetchWeight, setFetchWeight] = useState("");
   const [enterWeight, setEnterWeight] = useState("");
   const [loading, setLoading] = useState(false);
-  const [calibrateBtnDisabled, setCalibrateBtnDisabled] = useState(false);
+  const [canCalibrate, setCanCalibrate] = useState(false);
 
   useEffect(() => {
-    if (!permission?.granted) requestPermission();
+    (async () => {
+      const cam = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(cam.status === "granted");
+    })();
   }, []);
+
+  if (hasPermission === null) {
+    return (
+      <View style={styles.centerScreen}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (hasPermission === false) {
+    return (
+      <View style={styles.centerScreen}>
+        <Text>No access to camera</Text>
+        <TouchableOpacity
+          onPress={() => Camera.requestCameraPermissionsAsync()}
+          style={styles.permissionBtn}
+        >
+          <Text style={{ color: "#fff" }}>Allow Camera</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   const handleCapture = async () => {
     try {
       const picture = await cameraRef.current.takePictureAsync({
         base64: true,
-        quality: 0.4,
+        quality: 0.5,
       });
+
       setPhoto(picture);
-      setCalibrateBtnDisabled(true);
-    } catch (err) {
-      alert("Failed to capture image.");
+      setLoading(true);
+
+      // Run OCR automatically
+      const ocrText = await runOcrOnImage(picture.uri);
+      const cleanWeight = parseWeight(ocrText);
+
+      if (cleanWeight) {
+        setFetchWeight(cleanWeight.toString());
+        setCanCalibrate(true);
+      } else {
+        alert("Unable to detect weight! Please enter manually.");
+        setFetchWeight("");
+        setCanCalibrate(true);
+      }
+
+      setLoading(false);
+    } catch (e) {
+      console.log("Error capturing:", e);
+      setLoading(false);
+      alert("Capture failed. Try again.");
     }
   };
 
+
+  const handleRecapture = () => {
+    setPhoto(null);
+    setFetchWeight("");
+    setCanCalibrate(false);
+  };
+
+
   const handleCalibrate = async () => {
-    if (!fetchWeight || !enterWeight || !photo?.base64) {
-      alert("Please fill all fields and capture an image.");
+    if (!fetchWeight || !enterWeight) {
+      alert("Required fields missing.");
       return;
     }
 
@@ -70,12 +123,11 @@ export default function CalibrationPhaseScreen({ navigation }) {
         navigation.navigate("ProcessTransactionScreen");
       } else {
         alert("Calibration failed.");
-        setPhoto(null);
       }
     } catch (err) {
       setLoading(false);
-      alert("Calibration failed. Please try again.");
-      setPhoto(null);
+      alert("Error sending calibration.");
+      console.log(err);
     }
   };
 
@@ -90,26 +142,17 @@ export default function CalibrationPhaseScreen({ navigation }) {
         <View style={{ width: 26 }} />
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
-        
-        {/* Title Section */}
-        {/* <View style={styles.titleBox}>
-          <Text style={styles.title}>Capture Calibration Data</Text>
-          <Text style={styles.subTitle}>
-            Upload the bag image & enter weights accurately
-          </Text>
-        </View> */}
-
-        {/* Camera Box */}
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+        {/* CAMERA OR IMAGE */}
         <View style={styles.card}>
           {photo ? (
             <Image source={{ uri: photo.uri }} style={styles.capturedImage} />
           ) : (
-            <CameraView style={styles.camera} facing="back" ref={cameraRef} />
+            <CameraView style={styles.camera} ref={cameraRef} facing="back" />
           )}
         </View>
 
-        {/* Capture Button */}
+        {/* capture button */}
         {!photo && (
           <TouchableOpacity style={styles.captureBtn} onPress={handleCapture}>
             <MaterialIcons name="camera-alt" size={22} color="#fff" />
@@ -117,25 +160,32 @@ export default function CalibrationPhaseScreen({ navigation }) {
           </TouchableOpacity>
         )}
 
-        {/* Input Fields */}
+        {/* recapture button */}
+        {photo && (
+          <TouchableOpacity style={styles.reBtn} onPress={handleRecapture}>
+            <MaterialIcons name="camera" size={22} color="#fff" />
+            <Text style={styles.captureText}>Capture Image Again</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* WEIGHT SECTION */}
         <View style={styles.inputCard}>
-          <Text style={styles.inputLabel}>Fetch Weight</Text>
+          <Text style={styles.inputLabel}>Fetched Weight (Auto)</Text>
           <View style={styles.inputWrapper}>
             <TextInput
-              placeholder="Enter fetched weight"
-              placeholderTextColor="#9CA3AF"
               style={styles.input}
-              keyboardType="numeric"
               value={fetchWeight}
-              onChangeText={setFetchWeight}
+              editable={false} 
+              placeholder="Detected weight"
+              placeholderTextColor="#9CA3AF"
             />
             <Text style={styles.unit}>kg</Text>
           </View>
 
-          <Text style={styles.inputLabel}>Enter Weight</Text>
+          <Text style={styles.inputLabel}>Enter Weight (Manual)</Text>
           <View style={styles.inputWrapper}>
             <TextInput
-              placeholder="Enter input weight"
+              placeholder="Enter manual weight"
               placeholderTextColor="#9CA3AF"
               style={styles.input}
               keyboardType="numeric"
@@ -146,7 +196,8 @@ export default function CalibrationPhaseScreen({ navigation }) {
           </View>
         </View>
 
-        {calibrateBtnDisabled && (
+        {/* CALIBRATE BUTTON */}
+        {canCalibrate && (
           <TouchableOpacity style={styles.mainBtn} onPress={handleCalibrate}>
             <Text style={styles.mainBtnText}>Calibrate</Text>
           </TouchableOpacity>
@@ -164,12 +215,9 @@ export default function CalibrationPhaseScreen({ navigation }) {
   );
 }
 
-// ----------------- STYLES -----------------
+// ---------------- STYLES ----------------
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#eef2ff",
-  },
+  container: { flex: 1, backgroundColor: "#eef2ff" },
 
   header: {
     flexDirection: "row",
@@ -181,30 +229,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
 
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#2563eb",
-  },
-
-  titleBox: {
-    marginTop: 20,
-    alignItems: "center",
-    paddingHorizontal: 20,
-  },
-
-  title: {
-    fontSize: 26,
-    fontWeight: "800",
-    color: "#1e3a8a",
-    textAlign: "center",
-  },
-
-  subTitle: {
-    marginTop: 6,
-    color: "#6b7280",
-    textAlign: "center",
-  },
+  headerTitle: { fontSize: 22, fontWeight: "700", color: "#2563eb" },
 
   card: {
     width: "90%",
@@ -214,20 +239,11 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginTop: 20,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 8,
   },
 
-  camera: {
-    flex: 1,
-  },
+  camera: { flex: 1 },
 
-  capturedImage: {
-    width: "100%",
-    height: "100%",
-  },
+  capturedImage: { width: "100%", height: "100%" },
 
   captureBtn: {
     flexDirection: "row",
@@ -238,36 +254,30 @@ const styles = StyleSheet.create({
     width: "70%",
     alignSelf: "center",
     justifyContent: "center",
-    shadowColor: "#2563eb",
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
   },
 
-  captureText: {
-    color: "#fff",
-    marginLeft: 8,
-    fontWeight: "700",
+  reBtn: {
+    flexDirection: "row",
+    marginTop: 5,
+    backgroundColor: "#4b5563",
+    paddingVertical: 13,
+    borderRadius: 12,
+    width: "70%",
+    alignSelf: "center",
+    justifyContent: "center",
   },
+  captureText: { color: "#fff", marginLeft: 8, fontWeight: "700" },
 
   inputCard: {
-    marginTop: 25,
+    marginTop: 13,
     padding: 20,
     backgroundColor: "#ffffffaa",
     borderRadius: 18,
     width: "90%",
     alignSelf: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
   },
 
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 5,
-    color: "#374151",
-    marginTop: 10,
-  },
+  inputLabel: { fontSize: 14, fontWeight: "600", marginTop: 10 },
 
   inputWrapper: {
     flexDirection: "row",
@@ -282,24 +292,18 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     fontSize: 16,
+    color: "#000",
   },
 
-  unit: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#2563eb",
-  },
+  unit: { fontSize: 16, fontWeight: "700", color: "#2563eb" },
 
   mainBtn: {
     backgroundColor: "#4f46e5",
     paddingVertical: 16,
     borderRadius: 14,
-    marginTop: 30,
+    marginTop: 10,
     width: "85%",
     alignSelf: "center",
-    shadowColor: "#4f46e5",
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
   },
 
   mainBtnText: {
@@ -318,5 +322,19 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.6)",
     justifyContent: "center",
     alignItems: "center",
+  },
+
+  centerScreen: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  permissionBtn: {
+    marginTop: 15,
+    backgroundColor: "#2563eb",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
   },
 });

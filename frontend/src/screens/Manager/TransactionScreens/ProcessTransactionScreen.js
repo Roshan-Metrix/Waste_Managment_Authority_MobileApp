@@ -152,7 +152,7 @@ export default function ProcessTransactionScreen({ navigation }) {
             { backgroundColor: isReady ? "#2563eb" : "#94a3b8" },
           ]}
         >
-          <Text style={styles.finalButtonText}>Continue to Billing</Text>
+          <Text style={styles.finalButtonText}>Continue</Text>
         </TouchableOpacity>
       </View>
     </View>
