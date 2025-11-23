@@ -11,7 +11,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { AuthContext } from "../context/AuthContext";
 import { SidebarMenu } from "../Components/SidebarMenu";
-import { getTodayTransaction, clearOldTransaction } from "../../utils/storage";
+import { getTodayTransaction, clearOldTransaction } from "../utils/storage";
 
 export default function UserScreen({ navigation }) {
   const { user, logout } = useContext(AuthContext);
@@ -22,59 +22,47 @@ export default function UserScreen({ navigation }) {
     setRole(user?.role || "User");
   }, [user]);
 
-  // CHECK TRANSACTION FOR TODAY
-  // const goToTransaction = async () => {
-  //   const today = new Date().toISOString().split("T")[0];
-  //   const data = await getTodayTransaction();
 
-  //   if (data && data.date === today) {
-  //     navigation.navigate("ProcessTransactionScreen", {
-  //       transactionId: data.transactionId,
-  //     });
-  //   } else {
-  //     await clearOldTransaction();
-  //     navigation.navigate("AddTransactionScreen");
-  //   }
-  // };
+const goToTransaction = async () => {
+  try {
+    const today = new Date().toISOString().split("T")[0];
 
-  const goToTransaction = async () => {
-    try {
-      const today = new Date().toISOString().split("T")[0];
+    const data = await getTodayTransaction();
 
-      const data = await getTodayTransaction();
-
-      if (!data) {
-        await clearOldTransaction();
-        return navigation.navigate("AddTransactionScreen");
-      }
-
-      let parsed = null;
-
-      try {
-        parsed = JSON.parse(data);
-      } catch (err) {
-        await clearOldTransaction();
-        return navigation.navigate("AddTransactionScreen");
-      }
-
-      const storedDate = parsed?.date;
-      const storedId = parsed?.transactionId;
-
-      console.log("Stored date:", storedDate, "Today:", today);
-
-      if (storedDate === today && storedId) {
-        return navigation.navigate("ProcessTransactionScreen", {
-          transactionId: storedId,
-        });
-      }
-
+    if (!data || data === "null" || data === "undefined") {
       await clearOldTransaction();
-      navigation.navigate("AddTransactionScreen");
-    } catch (error) {
-      console.log("goToTransaction error:", error);
-      navigation.navigate("AddTransactionScreen");
+      return navigation.navigate("AddTransactionScreen");
     }
-  };
+
+    let parsed = null;
+    try {
+      parsed = typeof data === "string" ? JSON.parse(data) : data;
+    } catch (err) {
+      console.log("JSON Parse failed → clearing storage");
+      await clearOldTransaction();
+      return navigation.navigate("AddTransactionScreen");
+    }
+
+    const storedDate = parsed?.date;
+    const storedId = parsed?.transactionId;
+
+    console.log("Stored date:", storedDate, "Today:", today);
+
+    if (storedDate === today && storedId) {
+      return navigation.navigate("ProcessTransactionScreen", {
+        transactionId: storedId,
+      });
+    }
+
+    await clearOldTransaction();
+    navigation.navigate("AddTransactionScreen");
+
+  } catch (error) {
+    console.log("goToTransaction Error:", error);
+    navigation.navigate("AddTransactionScreen");
+  }
+};
+
 
   const roleBoxes = {
     admin: [
