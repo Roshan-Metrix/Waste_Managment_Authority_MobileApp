@@ -111,7 +111,7 @@ export const TransactionItemsController = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Item added successfully",
-      items: transaction.items,
+      items: transaction.items
     });
   } catch (error) {
     console.log("Error in TransactionItemsController:", error);
