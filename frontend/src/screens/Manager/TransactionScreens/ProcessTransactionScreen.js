@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,20 +6,59 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
-import HomeButton from "../../../Components/HomeButton";
 
-export default function ProcessTransactionScreen({ navigation, route }) {
-  const [transactionId, setTransactionId] = useState(
-    route.params?.transactionId || ""
-  );
-
+export default function ProcessTransactionScreen({ navigation }) {
+  const [transactionId, setTransactionId] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [calibrationStatus] = useState("Pending");
-  const [credentialStatus] = useState("Pending");
+  const [calibrationStatus, setCalibrationStatus] = useState("Pending");
+  const [credentialStatus, setCredentialStatus] = useState("Pending");
+
+  // LOAD transaction ID
+  const fetchTransactionId = async () => {
+    try {
+      setLoading(true);
+
+      const todayData = await AsyncStorage.getItem("todayTransaction");
+      const parsed = JSON.parse(todayData || "{}");
+      setTransactionId(parsed.transactionId || "");
+    } catch (error) {
+      console.log("AsyncStorage Fetch Error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // LOAD STATUS WHEN SCREEN IS FOCUSED
+  useFocusEffect(
+    useCallback(() => {
+      const loadStatus = async () => {
+        const calib = await AsyncStorage.getItem("calibrationStatus");
+        const cred = await AsyncStorage.getItem("credentialStatus");
+
+        setCalibrationStatus(calib || "Pending");
+        setCredentialStatus(cred || "Pending");
+      };
+
+      loadStatus();
+    }, [])
+  );
+
+  useEffect(() => {
+    fetchTransactionId();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="#2563eb" />
+      </View>
+    );
+  }
 
   const isReady =
     calibrationStatus === "Completed" && credentialStatus === "Completed";
@@ -29,45 +68,38 @@ export default function ProcessTransactionScreen({ navigation, route }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: "#f9fafb" }}>
-      {/* Header */}
+
+      {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Process Transaction</Text>
         <View style={{ width: 26 }} />
-        <HomeButton />
       </View>
 
-      {/* Top Icon */}
-      <View style={styles.topIconWrapper}>
-        <View style={styles.topIconCircle}>
-          <MaterialIcons name="account-balance" size={60} color="#2563eb" />
-        </View>
-        <Text style={styles.topTitle}>Transaction Processing</Text>
-        <Text style={styles.topSubtitle}>
-          Complete the necessary phases below
-        </Text>
-      </View>
+       {/* Top Icon */}
+       <View style={styles.topIconWrapper}>
+         <View style={styles.topIconCircle}>
+           <MaterialIcons name="account-balance" size={60} color="#2563eb" />
+         </View>
+         <Text style={styles.topTitle}>Transaction Processing</Text>
+         <Text style={styles.topSubtitle}>
+           Complete the necessary phases below
+         </Text>
+       </View>
 
+      {/* CONTENT */}
       <View style={styles.container}>
-        {/* Transaction ID */}
+        
         <Text style={styles.label}>Transaction ID</Text>
-
         <View style={styles.inputRow}>
           <TextInput
             style={styles.input}
-            placeholder="Fetch Transaction ID"
             value={transactionId}
             editable={false}
           />
         </View>
-
-        {!transactionId && (
-          <Text style={{ color: "red", marginBottom: 15 }}>
-            Fetch Transaction ID to continue
-          </Text>
-        )}
 
         {/* Calibration Phase */}
         <TouchableOpacity
@@ -79,9 +111,7 @@ export default function ProcessTransactionScreen({ navigation, route }) {
         >
           <View>
             <Text style={styles.phaseTitle}>Calibration Phase</Text>
-            <Text style={styles.phaseDesc}>
-              Begin initial verification process
-            </Text>
+            <Text style={styles.phaseDesc}>Begin initial verification</Text>
           </View>
 
           <View style={[styles.statusBadge, getStatusStyle(calibrationStatus)]}>
@@ -101,25 +131,25 @@ export default function ProcessTransactionScreen({ navigation, route }) {
         >
           <View>
             <Text style={styles.phaseTitle}>Credential Verification</Text>
-            <Text style={styles.phaseDesc}>Verify Manager credentials</Text>
+            <Text style={styles.phaseDesc}>Verify Signature</Text>
           </View>
 
-          <View style={[styles.statusBadge, getStatusStyle(credentialStatus)]}>
+          <View
+            style={[styles.statusBadge, getStatusStyle(credentialStatus)]}
+          >
             <Text style={styles.statusText}>{credentialStatus}</Text>
           </View>
         </TouchableOpacity>
 
         {/* Final Button */}
         <TouchableOpacity
-          disabled={!isReady || !transactionId}
+          disabled={!isReady}
           onPress={() =>
             navigation.navigate("ItemsTransactionScreen", { transactionId })
           }
           style={[
             styles.finalButton,
-            {
-              backgroundColor: isReady && transactionId ? "#2563eb" : "#94a3b8",
-            },
+            { backgroundColor: isReady ? "#2563eb" : "#94a3b8" },
           ]}
         >
           <Text style={styles.finalButtonText}>Continue to Billing</Text>
@@ -170,9 +200,9 @@ const styles = StyleSheet.create({
 
   container: { padding: 20 },
 
-  label: { 
-    fontSize: 16, 
-    fontWeight: "600", 
+  label: {
+    fontSize: 16,
+    fontWeight: "600",
     marginBottom: 8,
     marginLeft: 10,
   },
@@ -184,14 +214,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     elevation: 2,
   },
-  fetchButton: {
-    backgroundColor: "#2563eb",
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    borderRadius: 12,
-    marginLeft: 10,
-  },
-  fetchButtonText: { color: "#fff", fontWeight: "700" },
 
   phaseButton: {
     backgroundColor: "#ffffff",

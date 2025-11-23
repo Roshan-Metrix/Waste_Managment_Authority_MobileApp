@@ -1,31 +1,30 @@
 import React, { useRef, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
 import SignatureScreen from "react-native-signature-canvas";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
 
 export default function CredentialVerificationScreen({ navigation }) {
   const signatureRef = useRef(null);
-  const [signature, setSignature] = useState(null);
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // Handle Signature OK
   const handleSignature = async (sig) => {
-    setSignature(sig);
-    setSubmitted(true);
-
-    // Save to AsyncStorage
     try {
+      setLoading(true);
+
+      await AsyncStorage.setItem("credentialStatus", "Completed");
       await AsyncStorage.setItem("managerSignature", sig);
-      console.log("Manager signature saved!");
+
+      setSubmitted(true);
+
+      setTimeout(() => {
+        setLoading(false);
+        navigation.goBack();
+      }, 500);
     } catch (e) {
       console.log("Error saving signature: ", e);
+      setLoading(false);
     }
   };
 
@@ -35,38 +34,42 @@ export default function CredentialVerificationScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Calibration Phase</Text>
+
+        <Text style={styles.headerTitle}>Credential Verification</Text>
+
         <View style={{ width: 26 }} />
       </View>
 
-      <Text style={styles.heading}>Signature</Text>
+      <Text style={styles.heading}>Manager Signature</Text>
 
-      {/* SIGNATURE PAD OR PREVIEW */}
-      {!submitted ? (
-        <View style={styles.signatureBox}>
-          <SignatureScreen
-            ref={signatureRef}
-            onOK={handleSignature}
-            onEmpty={() => alert("Please sign first")}
-            descriptionText="Sign here"
-            clearText="Clear"
-            confirmText="Save"
-            webStyle={style}
-          />
-        </View>
-      ) : (
-        <View style={styles.previewBox}>
-          <Image source={{ uri: signature }} style={styles.signatureImage} />
+      <View style={styles.signatureBox}>
+        <SignatureScreen
+          ref={signatureRef}
+          onOK={handleSignature}
+          onEmpty={() => alert("Please sign first")}
+          descriptionText="Sign here"
+          clearText="Clear"
+          confirmText="Save"
+          webStyle={style}
+        />
+      </View>
+
+      {/* LOADING SPINNER */}
+      {loading && (
+        <View style={{ marginTop: 20 }}>
+          <ActivityIndicator size="large" />
+          <Text style={{ textAlign: "center", marginTop: 10 }}>Submitting...</Text>
         </View>
       )}
 
       {/* SUBMIT BUTTON */}
-      {!submitted && (
+      {!submitted && !loading && (
         <TouchableOpacity
           style={styles.submitBtn}
           onPress={() => signatureRef.current.readSignature()}
@@ -76,19 +79,11 @@ export default function CredentialVerificationScreen({ navigation }) {
       )}
 
       {/* CLEAR BUTTON */}
-      {!submitted && (
+      {!submitted && !loading && (
         <TouchableOpacity style={styles.clearBtn} onPress={handleClear}>
           <Text style={styles.clearText}>Clear Signature</Text>
         </TouchableOpacity>
       )}
-
-      {/* GO BACK BUTTON */}
-      <TouchableOpacity
-        style={[styles.submitBtn, { marginTop: 20, backgroundColor: "black" }]}
-        onPress={() => navigation.goBack()}
-      >
-        <Text style={styles.submitText}>Go Back</Text>
-      </TouchableOpacity>
     </View>
   );
 }
@@ -135,21 +130,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: "hidden",
     marginBottom: 20,
-  },
-
-  previewBox: {
-    height: 300,
-    borderWidth: 2,
-    borderColor: "#ccc",
-    borderRadius: 12,
-    overflow: "hidden",
-    justifyContent: "center",
-    marginBottom: 20,
-  },
-
-  signatureImage: {
-    width: "100%",
-    height: "100%",
   },
 
   submitBtn: {

@@ -12,6 +12,8 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import DropDownPicker from "react-native-dropdown-picker";
 import api from "../../../api/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { saveTodayTransaction } from "../../../../utils/storage";
 
 export default function AddTransactionScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
@@ -55,40 +57,7 @@ export default function AddTransactionScreen({ navigation }) {
     fetchProfile();
   }, []);
 
-  // const handleProcess = async () => {
-  //   if (!vendor) {
-  //     return Alert.alert("Missing", "Please select Vendor Name.");
-  //   }
-
-  //   if (vendor === "Others" && !otherVendor.trim()) {
-  //     return Alert.alert("Missing Field", "Please enter Vendor Name.");
-  //   }
-
-  //   try {
-  //     const res = await api.post("/manager/transaction/add-transaction", {
-  //       storeId,
-  //       storeName,
-  //       storeLocation,
-  //       managerName,
-  //       vendorName: vendor === "Others" ? otherVendor : vendor,
-  //     });
-
-  //     if (res.data.transactionId) {
-  //       setTransactionId(res.data.transactionId);
-
-  //       navigation.navigate("ProcessTransactionScreen", {
-  //         transactionId: res.data.transactionId,
-  //       });
-  //     } else {
-  //       Alert.alert("Error", "Failed to create transaction.");
-  //     }
-  //   } catch (error) {
-  //     console.log("Transaction Create Error:", error);
-  //     Alert.alert("Error", "Something went wrong while creating transaction.");
-  //   }
-  // };
-
-  const handleProcess = async () => {
+const handleProcess = async () => {
   if (!vendor) {
     return Alert.alert("Missing", "Please select Vendor Name.");
   }
@@ -98,33 +67,45 @@ export default function AddTransactionScreen({ navigation }) {
   }
 
   try {
-    const payload = {
-      storeId: storeId,                  // must be string
-      storeName: storeName,              // must be string
-      storeLocation: storeLocation,      // must be string
-      managerName: managerName,          // must be string
+    const res = await api.post("/manager/transaction/add-transaction", {
+      storeId,
+      storeName,
+      storeLocation,
+      managerName,
       vendorName: vendor === "Others" ? otherVendor : vendor,
-    };
+    });
 
-    console.log("Sending Payload:", payload);
+    console.log("Transaction Create Response:", res.data);
 
-    const res = await api.post("/manager/transaction/add-transaction", payload);
+    const transactionId = res.data.transactionId;
 
-    if (res.data?.transactionId) {
-      setTransactionId(res.data.transactionId);
-
-      navigation.navigate("ProcessTransactionScreen", {
-        transactionId: res.data.transactionId,
-      });
-    } else {
-      Alert.alert("Error", "Failed to create transaction.");
+    if (!transactionId) {
+      return Alert.alert("Error", "Failed to create transaction.");
     }
+
+    // SAVE TO ASYNC STORAGE
+    await saveTodayTransaction(transactionId);
+    
+    // Navigate
+    navigation.navigate("ProcessTransactionScreen");
+
   } catch (error) {
-    console.log("Transaction Create Error:", error?.response?.data || error);
+    console.log("Transaction Create Error:", error);
+
+    if (error.response?.data?.transactionId) {
+      const existingId = error.response.data.transactionId;
+
+      // Save existing id locally
+      await saveTodayTransaction(existingId);
+
+      Alert.alert("Existing", "Transaction already exists for today");
+
+      return navigation.navigate("ProcessTransactionScreen");
+    }
+
     Alert.alert("Error", "Something went wrong while creating transaction.");
   }
 };
-
 
   if (loading) {
     return (
