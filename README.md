@@ -57,7 +57,7 @@ For product or design queries, link to Decathlon stakeholders or internal channe
 
 Note: This is an internal-in-development app for Decathlon. Assets and branding are provided in the repository (frontend/assets/icon.png).
 
-Contact to the developer <i><u>roshanpatel12309@gmail.com</u></i>
+Contact <i><u>roshanpatel12309@gmail.com</u></i>
 
 ---
 *This README was generated to provide an overview of the Decathlon Mobile (Expo) app prototype.*
