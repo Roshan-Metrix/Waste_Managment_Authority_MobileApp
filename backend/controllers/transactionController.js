@@ -123,13 +123,13 @@ export const TransactionItemsController = async (req, res) => {
 export const TransactionCalibrationController = async (req, res) => {
   try {
     const { transactionId } = req.params;
-    const { image, fetchWeight, enterWeight } = req.body;
+    const { image, fetchWeight } = req.body;
 
-    if (!image || !fetchWeight || !enterWeight) {
+    if (!image || !fetchWeight) {
       return res.status(400).json({ success:false, message: "All fields are required" });
     }
 
-    if (fetchWeight !== enterWeight) {
+    if (fetchWeight < 0 || fetchWeight > 0) {
       return res
         .status(400)
         .json({ success: false, message: "Calibration failed, Try again!" });
