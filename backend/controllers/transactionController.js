@@ -17,27 +17,29 @@ export const AddTransactionDetailController = async (req, res) => {
       !managerName ||
       !vendorName
     ) {
-      return res.status(400).json({ success:false, message: "All fields are required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required" });
     }
 
     // Generate unique transactionId
     const transactionIdWithoutCount = await CheckTodaysTransactionId(storeId);
-    
+
     // Check for existing open transaction for the store
     const existingTransaction = await transactionModel.findOne({
       transactionId: { $regex: `^${transactionIdWithoutCount}` },
     });
-    
+
     if (existingTransaction) {
       return res.status(400).json({
         success: false,
         message: "Transaction already exists for today",
-        transactionId : existingTransaction.transactionId
+        transactionId: existingTransaction.transactionId,
       });
     }
-    
+
     const transactionId = await generateTransactionId(storeId);
-    
+
     const newTransaction = new transactionModel({
       transactionId,
       store: {
@@ -48,9 +50,9 @@ export const AddTransactionDetailController = async (req, res) => {
       managerName,
       vendorName,
       calibration: {
-        image: "", 
+        image: "",
       },
-      items: [], 
+      items: [],
     });
 
     await newTransaction.save();
@@ -62,7 +64,9 @@ export const AddTransactionDetailController = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in AddTransactionDetailController:", error);
-    return res.status(500).json({ success: false, message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -74,10 +78,14 @@ export const TransactionItemsController = async (req, res) => {
 
     // Validate required fields
     if (!materialType) {
-      return res.status(400).json({ success:false, message: "materialType is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "materialType is required" });
     }
     if (!weight) {
-      return res.status(400).json({ success:false, message: "weight is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "weight is required" });
     }
     if (!weightSource || !["manually", "system"].includes(weightSource)) {
       return res.status(400).json({
@@ -89,7 +97,9 @@ export const TransactionItemsController = async (req, res) => {
     // Find transaction
     const transaction = await transactionModel.findOne({ transactionId });
     if (!transaction) {
-      return res.status(404).json({ success: false, message: "Transaction not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Transaction not found" });
     }
 
     // Auto-generate item number
@@ -110,11 +120,13 @@ export const TransactionItemsController = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Item added successfully",
-      items: transaction.items
+      items: transaction.items,
     });
   } catch (error) {
     console.log("Error in TransactionItemsController:", error);
-    return res.status(500).json({ success: false, message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -122,13 +134,15 @@ export const TransactionItemsController = async (req, res) => {
 export const TransactionCalibrationController = async (req, res) => {
   try {
     const { transactionId } = req.params;
-    const { image, fetchWeight } = req.body;
+    const { image, fetchWeight, enterWeight } = req.body;
 
-    if (!image || !fetchWeight) {
-      return res.status(400).json({ success:false, message: "All fields are required" });
+    if (!image || !fetchWeight || !enterWeight) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required" });
     }
 
-    if (fetchWeight < 0 || fetchWeight > 0) {
+    if (Math.abs(fetchWeight - enterWeight) > 0.1) {
       return res
         .status(400)
         .json({ success: false, message: "Calibration failed, Try again!" });
@@ -137,7 +151,9 @@ export const TransactionCalibrationController = async (req, res) => {
     const transaction = await transactionModel.findOne({ transactionId });
 
     if (!transaction) {
-      return res.status(404).json({ success:false, message: "Transaction not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Transaction not found" });
     }
 
     transaction.calibration = { image };
@@ -151,7 +167,9 @@ export const TransactionCalibrationController = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in TransactionCalibrationController:", error);
-    return res.status(500).json({ success: false, message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -194,7 +212,9 @@ export const TodaysTransactionController = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in TodaysTransactionController:", error);
-    return res.status(500).json({ success: false, message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -243,6 +263,8 @@ export const AllStoreTodaysTransactionsController = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in AllStoreTodaysTransactionsController:", error);
-    return res.status(500).json({ success: false, message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 };
