@@ -1,9 +1,3 @@
-// import FeatureLayout from "../../Components/FeatureLayout";
-
-// export default function ManageDataAdminScreen({ navigation }) {
-//   return <FeatureLayout navigation={navigation} title="Manage Data" icon="folder" />;
-// }
-
 import React from "react";
 import {
   View,
@@ -13,8 +7,9 @@ import {
   ScrollView,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import colors from '../../colors'
 
-export default function ManageDataAdminScreen({ navigation }) {
+export default function ManageDataScreen({ navigation }) {
   const handleAction = (action) => {
     alert(`You selected: ${action}`);
   };
@@ -27,7 +22,7 @@ export default function ManageDataAdminScreen({ navigation }) {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
+          <MaterialIcons name="arrow-back" size={26} color={colors.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Manage Data</Text>
         <View style={{ width: 26 }} />
@@ -36,12 +31,12 @@ export default function ManageDataAdminScreen({ navigation }) {
       {/* Content */}
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.iconCircle}>
-          <MaterialIcons name="folder" size={60} color="#2563eb" />
+          <MaterialIcons name="folder" size={60} color={colors.primary} />
         </View>
 
-        <Text style={styles.subTitle}>Admin Data Management</Text>
+        <Text style={styles.subTitle}>Data Management</Text>
         <Text style={styles.desc}>
-          You can perform data management operations such as viewing, editing,
+          Perform data management operations such as viewing, editing,
           deleting, or exporting stored records.
         </Text>
 
@@ -57,26 +52,10 @@ export default function ManageDataAdminScreen({ navigation }) {
 
           <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: "#22c55e" }]}
-            onPress={() => handleAction("Edit Data")}
-          >
-            <MaterialIcons name="edit" size={22} color="#fff" />
-            <Text style={styles.actionText}>Edit Data</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: "#f59e0b" }]}
-            onPress={() => handleAction("Export Data")}
+            onPress={() => navigation.navigate("VendorSignatureScreen")}
           >
             <MaterialIcons name="file-download" size={22} color="#fff" />
             <Text style={styles.actionText}>Export Data</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: "#ef4444" }]}
-            onPress={() => handleAction("Delete Data")}
-          >
-            <MaterialIcons name="delete" size={22} color="#fff" />
-            <Text style={styles.actionText}>Delete Data</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -109,7 +88,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#2563eb",
+    color: colors.primary,
   },
   content: {
     paddingHorizontal: 20,
@@ -144,7 +123,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#2563eb",
+    backgroundColor: colors.primary,
     paddingVertical: 14,
     borderRadius: 14,
   },

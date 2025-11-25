@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import api from "../../../api/api";
+import colors from '../../../colors'
 
 export default function ViewOwnStoreManagersScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
@@ -53,7 +54,7 @@ export default function ViewOwnStoreManagersScreen({ navigation }) {
   const renderManager = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.row}>
-        <Ionicons name="person-circle-outline" size={40} color="#2563eb" />
+        <Ionicons name="person-circle-outline" size={40} color={colors.primary} />
         <View style={{ marginLeft: 10 }}>
           <Text style={styles.name}>{item.name}</Text>
 
@@ -76,7 +77,7 @@ export default function ViewOwnStoreManagersScreen({ navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={26} color="#2563eb" />
+          <Ionicons name="arrow-back" size={26} color={colors.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Store Managers</Text>
         <View style={{ width: 26 }} />
@@ -84,7 +85,7 @@ export default function ViewOwnStoreManagersScreen({ navigation }) {
 
       {/* Total Managers COUNT (Styled UI Card) */}
       <View style={styles.countCard}>
-        <Ionicons name="people-outline" size={28} color="#2563eb" />
+        <Ionicons name="people-outline" size={28} color={colors.primary} />
         <Text style={styles.countText}>Total Managers: </Text>
         <Text style={styles.countNumber}>{filteredManagers.length}</Text>
       </View>
@@ -99,7 +100,7 @@ export default function ViewOwnStoreManagersScreen({ navigation }) {
       />
 
       {loading ? (
-        <ActivityIndicator size="large" color="#2563eb" style={{ marginTop: 20 }} />
+        <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 20 }} />
       ) : (
         <FlatList
           data={filteredManagers}
@@ -130,7 +131,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#2563eb",
+    color: colors.primary,
   },
 
   // ⭐ Total Count Card
@@ -151,7 +152,7 @@ const styles = StyleSheet.create({
   countNumber: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#2563eb",
+    color: colors.primary,
   },
 
   searchInput: {
@@ -195,6 +196,6 @@ const styles = StyleSheet.create({
 
   highlight: {
     fontWeight: "600",
-    color: "#2563eb",
+    color: colors.primary,
   },
 });

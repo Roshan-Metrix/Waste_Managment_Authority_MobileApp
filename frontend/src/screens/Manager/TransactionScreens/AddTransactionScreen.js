@@ -17,6 +17,7 @@ import {
   clearOldTransaction,
   saveTodayTransaction,
 } from "../../../utils/storage";
+import colors from '../../../colors'
 
 export default function AddTransactionScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
@@ -153,23 +154,30 @@ export default function AddTransactionScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#2563eb" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
+   
+  // Get Today date
+    const today = new Date().toLocaleString("en-CA", { timeZone: "Asia/Kolkata" }).split(",")[0];
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
+          <MaterialIcons name="arrow-back" size={26} color={colors.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Add Transaction</Text>
         <View style={{ width: 26 }} />
       </View>
 
       <View style={styles.form}>
+         {/* Date */}
+        <Text style={styles.label}>Date</Text>
+        <TextInput style={styles.input} value={today} editable={false} />
+
         {/* Store ID */}
         <Text style={styles.label}>Store ID</Text>
         <TextInput style={styles.input} value={storeId} editable={false} />
@@ -263,7 +271,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#2563eb",
+    color: colors.primary,
   },
 
   form: {
@@ -303,7 +311,7 @@ const styles = StyleSheet.create({
   },
 
   processButton: {
-    backgroundColor: "#2563eb",
+    backgroundColor: colors.primary,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",

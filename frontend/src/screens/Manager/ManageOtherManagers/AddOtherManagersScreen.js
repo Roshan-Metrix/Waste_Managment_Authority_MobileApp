@@ -12,6 +12,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import api from "../../../api/api";
+import colors from "../../../colors"
 
 export default function AddOtherManagersScreen({ navigation }) {
   const [name, setName] = useState("");
@@ -145,7 +146,7 @@ export default function AddOtherManagersScreen({ navigation }) {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
+          <MaterialIcons name="arrow-back" size={26} color={colors.primary} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>Add Managers</Text>
@@ -155,7 +156,7 @@ export default function AddOtherManagersScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.content}>
         {/* Icon */}
         <View style={styles.iconCircle}>
-          <MaterialIcons name="person-add" size={60} color="#2563eb" />
+          <MaterialIcons name="person-add" size={60} color={colors.primary} />
         </View>
 
         <Text style={styles.title}>Create New Manager</Text>
@@ -163,7 +164,7 @@ export default function AddOtherManagersScreen({ navigation }) {
         <View style={styles.form}>
           {/* NAME */}
           {/* <View style={styles.inputWrapper}>
-            <MaterialIcons name="store" size={20} color="#2563eb" />
+            <MaterialIcons name="store" size={20} color={colors.primary} />
             <TextInput
               style={styles.inputField}
               placeholder="Store Id"
@@ -174,7 +175,7 @@ export default function AddOtherManagersScreen({ navigation }) {
 
           {/* NAME */}
           <View style={styles.inputWrapper}>
-            <MaterialIcons name="person" size={20} color="#2563eb" />
+            <MaterialIcons name="person" size={20} color={colors.primary} />
             <TextInput
               style={styles.inputField}
               placeholder="Manager Name"
@@ -185,7 +186,7 @@ export default function AddOtherManagersScreen({ navigation }) {
 
           {/* EMAIL */}
           <View style={styles.inputWrapper}>
-            <MaterialIcons name="email" size={20} color="#2563eb" />
+            <MaterialIcons name="email" size={20} color={colors.primary} />
             <TextInput
               style={styles.inputField}
               placeholder="Manager Email"
@@ -197,7 +198,7 @@ export default function AddOtherManagersScreen({ navigation }) {
 
           {/* PASSWORD BOX */}
           <View style={styles.passwordBox}>
-            <MaterialIcons name="lock" size={24} color="#2563eb" />
+            <MaterialIcons name="lock" size={24} color={colors.primary} />
 
             <TouchableOpacity onPress={copyPassword} style={{ flex: 1 }}>
               <Animated.Text
@@ -208,7 +209,7 @@ export default function AddOtherManagersScreen({ navigation }) {
             </TouchableOpacity>
 
             <TouchableOpacity onPress={() => setPassword(generatePassword())}>
-              <MaterialIcons name="refresh" size={26} color="#2563eb" />
+              <MaterialIcons name="refresh" size={26} color={colors.primary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -279,7 +280,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   backButton: { padding: 4 },
-  headerTitle: { fontSize: 22, fontWeight: "700", color: "#2563eb" },
+  headerTitle: { fontSize: 22, fontWeight: "700", color: colors.primary },
 
   content: {
     paddingHorizontal: 20,
@@ -325,7 +326,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#2563eb",
+    borderColor: colors.primary,
     padding: 12,
     borderRadius: 10,
     backgroundColor: "#f8fafc",
@@ -335,14 +336,14 @@ const styles = StyleSheet.create({
   passwordText: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#2563eb",
+    color: colors.primary,
   },
 
   createBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#2563eb",
+    backgroundColor: colors.primary,
     paddingVertical: 14,
     borderRadius: 12,
     width: "100%",
@@ -365,7 +366,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#2563eb",
+    color: colors.primary,
     textAlign: "center",
     marginBottom: 18,
   },
@@ -380,7 +381,7 @@ const styles = StyleSheet.create({
   },
 
   submitButton: {
-    backgroundColor: "#2563eb",
+    backgroundColor: colors.primary,
     padding: 12,
     borderRadius: 12,
     marginTop: 18,

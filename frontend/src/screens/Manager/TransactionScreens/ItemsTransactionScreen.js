@@ -73,7 +73,10 @@ export default function ItemsTransactionScreen({ navigation }) {
 
       if (res.data?.success) {
         const items = res.data?.transactions?.[0]?.items || [];
-        setItemsList(items);
+        
+        const reversedItems = [...items].reverse();
+        
+        setItemsList(reversedItems);
       }
     } catch (e) {
       console.log("Fetch items error:", e);
@@ -99,7 +102,8 @@ export default function ItemsTransactionScreen({ navigation }) {
       setLoading(true);
 
       // OCR
-      const ocrText = await runOcrOnImage(picture.uri);
+      // NOTE: runOcrOnImage and parseWeight functions must be implemented in their respective files
+      const ocrText = await runOcrOnImage(picture.uri); 
       const cleanWeight = parseWeight(ocrText);
 
       if (cleanWeight) setFetchWeight(cleanWeight.toString());
@@ -178,7 +182,10 @@ export default function ItemsTransactionScreen({ navigation }) {
 
       if (res.data?.success) {
         const returnedItems = res.data.items || [];
-        setItemsList(returnedItems);
+        
+        const reversedReturnedItems = [...returnedItems].reverse(); 
+        
+        setItemsList(reversedReturnedItems); 
 
         // reset fields for next item
         setPhoto(null);
@@ -247,12 +254,39 @@ export default function ItemsTransactionScreen({ navigation }) {
     );
   }
 
+const formatDateTime = (isoString) => {
+  if (!isoString) {
+    return { formattedDate: "N/A", formattedTime: "N/A" };
+  }
+  try {
+    const date = new Date(isoString);
+
+    // Format Date (e.g., "Nov 25, 2025")
+    const formattedDate = date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+    });
+
+    // Format Time (e.g., "2:30 PM")
+    const formattedTime = date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+    return { formattedDate, formattedTime };
+  } catch (e) {
+    console.error("Date formatting error:", e);
+    return { formattedDate: "Invalid Date", formattedTime: "Invalid Time" };
+  }
+};
+
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
+          <MaterialIcons name="arrow-back" size={26} color="#1e40af" />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>Add Materials</Text>
@@ -260,7 +294,7 @@ export default function ItemsTransactionScreen({ navigation }) {
         <TouchableOpacity
           onPress={() => navigation.navigate("VendorSignatureScreen")}
         >
-          <MaterialIcons name="assignment" size={32} color="#2563eb" />
+          <MaterialIcons name="assignment" size={32} color="#1e40af" />
         </TouchableOpacity>
       </View>
 
@@ -355,7 +389,7 @@ export default function ItemsTransactionScreen({ navigation }) {
           <ActivityIndicator
             style={{ marginTop: 15 }}
             size="small"
-            color="#2563eb"
+            color="#1e40af"
           />
         ) : itemsList.length === 0 ? (
           <Text style={styles.noItems}>No items added yet.</Text>
@@ -363,6 +397,7 @@ export default function ItemsTransactionScreen({ navigation }) {
           <View style={{ marginTop: 10 }}>
             {itemsList.map((item) => {
               const imgUri = getItemImageUri(item.image);
+              const { formattedDate, formattedTime } = formatDateTime(item.createdAt);
               return (
                 <View key={item.itemNo} style={styles.card}>
                   <Image
@@ -375,9 +410,12 @@ export default function ItemsTransactionScreen({ navigation }) {
                   />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.cardTitle}>
-                      {item.itemNo}. {item.materialType}
+                     {/* {item.itemNo}.  */}
+                     {item.materialType}
                     </Text>
-                    <Text style={styles.cardSub}>Weight: {item.weight} kg</Text>
+                    <Text style={styles.cardSub}>Weight : {item.weight} kg</Text>
+                    <Text style={styles.cardSub}>Date : {formattedDate} </Text>
+                    <Text style={styles.cardSub}>Time : {formattedTime} </Text>
                     <Text style={styles.cardTag}>
                       {item.weightSource === "system" ? "System" : "Manual"}
                     </Text>
@@ -418,7 +456,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#2563eb",
+    color: "#1e40af",
   },
 
   cameraBox: {
@@ -438,7 +476,7 @@ const styles = StyleSheet.create({
   captureBtn: {
     flexDirection: "row",
     marginTop: 15,
-    backgroundColor: "#2563eb",
+    backgroundColor: "#1e40af",
     paddingVertical: 13,
     borderRadius: 12,
     width: "70%",
@@ -502,7 +540,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#4f46e5",
     paddingVertical: 16,
     borderRadius: 14,
-    marginTop: 25,
+    marginTop: 15,
     width: "85%",
     alignSelf: "center",
   },
@@ -541,8 +579,8 @@ const styles = StyleSheet.create({
   },
 
   cardImage: {
-    width: 60,
-    height: 60,
+    width: 115,
+    height: 115,
     borderRadius: 10,
     marginRight: 12,
     backgroundColor: "#f3f4f6",

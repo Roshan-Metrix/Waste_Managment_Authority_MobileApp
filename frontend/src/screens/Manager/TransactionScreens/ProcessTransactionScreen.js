@@ -10,6 +10,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
+import colors from "../../../colors";
 
 export default function ProcessTransactionScreen({ navigation }) {
   const [transactionId, setTransactionId] = useState("");
@@ -55,7 +56,7 @@ export default function ProcessTransactionScreen({ navigation }) {
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#2563eb" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -68,39 +69,46 @@ export default function ProcessTransactionScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: "#f9fafb" }}>
-
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.navigate("UserScreen")}>
-          <MaterialIcons name="arrow-back" size={40} color="#2563eb" />
+          <MaterialIcons name="arrow-back" size={40} color={colors.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Process Transaction</Text>
         <View style={{ width: 26 }} />
       </View>
 
-       {/* Top Icon */}
-       <View style={styles.topIconWrapper}>
-         <View style={styles.topIconCircle}>
-           <MaterialIcons name="account-balance" size={60} color="#2563eb" />
-         </View>
-         <Text style={styles.topTitle}>Transaction Processing</Text>
-         <Text style={styles.topSubtitle}>
-           Complete the necessary phases below
-         </Text>
-       </View>
+      {/* Top Icon */}
+      <View style={styles.topIconWrapper}>
+        <View style={styles.topIconCircle}>
+          <MaterialIcons name="account-balance" size={60} color={colors.primary} />
+        </View>
+        <Text style={styles.topTitle}>Transaction Processing</Text>
+        <Text style={styles.topSubtitle}>
+          Complete the necessary phases below
+        </Text>
+      </View>
 
       {/* CONTENT */}
       <View style={styles.container}>
-        
         <Text style={styles.label}>Transaction ID</Text>
-        <View style={styles.inputRow}>
-          <TextInput
-            style={styles.input}
-            value={transactionId}
-            editable={false}
-          />
-        </View>
-
+        {transactionId ? (
+          <View style={styles.inputRow}>
+            <TextInput
+              style={styles.input}
+              value={transactionId}
+              editable={false}
+            />
+          </View>
+        ) : (
+          <View style={styles.inputRow}>
+            <TextInput
+              style={styles.input}
+              value="Add Transaction First"
+              editable={false}
+            />
+          </View>
+        )}
         {/* Calibration Phase */}
         <TouchableOpacity
           style={[styles.phaseButton, !transactionId && styles.disabled]}
@@ -134,9 +142,7 @@ export default function ProcessTransactionScreen({ navigation }) {
             <Text style={styles.phaseDesc}>Verify Signature</Text>
           </View>
 
-          <View
-            style={[styles.statusBadge, getStatusStyle(credentialStatus)]}
-          >
+          <View style={[styles.statusBadge, getStatusStyle(credentialStatus)]}>
             <Text style={styles.statusText}>{credentialStatus}</Text>
           </View>
         </TouchableOpacity>
@@ -149,7 +155,7 @@ export default function ProcessTransactionScreen({ navigation }) {
           }
           style={[
             styles.finalButton,
-            { backgroundColor: isReady ? "#2563eb" : "#94a3b8" },
+            { backgroundColor: isReady ? colors.primary : "#94a3b8" },
           ]}
         >
           <Text style={styles.finalButtonText}>Continue</Text>
@@ -174,7 +180,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#2563eb",
+    color: colors.primary,
     marginLeft: 15,
   },
   topIconWrapper: { alignItems: "center", marginTop: 25, marginBottom: 10 },
@@ -185,7 +191,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#dbeafe",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#2563eb",
+    shadowColor: colors.primary,
     shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 3 },
     shadowRadius: 6,
@@ -193,7 +199,7 @@ const styles = StyleSheet.create({
   topTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#1e40af",
+    color: colors.primary,
     marginTop: 12,
   },
   topSubtitle: { fontSize: 14, color: "#64748b", marginTop: 4 },

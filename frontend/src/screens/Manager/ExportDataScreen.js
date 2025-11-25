@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,13 +6,291 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-export default function ExportDataScreen({ navigation }) {
-  const handleExport = (type) => {
-    Alert.alert("Export Started", `Exporting data as ${type}...`);
+import * as Print from 'expo-print'; 
+import * as Sharing from 'expo-sharing'; 
+import * as FileSystem from 'expo-file-system';
+
+// Converts ISO string to IST formatted date and time for file content.
+const formatISTDateTime = (isoString) => {
+  try {
+    const dateObj = new Date(isoString);
+    const date = dateObj.toLocaleDateString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+    });
+    const time = dateObj.toLocaleTimeString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    });
+    return { date, time };
+  } catch (e) {
+    return { date: "N/A", time: "N/A" };
+  }
+};
+
+const generateCSV = (data) => {
+  const headers = [
+    "SN",
+    "Transaction ID",
+    "Store Name",
+    "Vendor",
+    "Material Type",
+    "Weight (kg)",
+    "Weight Source",
+    "Date (IST)",
+    "Time (IST)",
+  ];
+  let csvString = headers.join(",") + "\n";
+
+  data.items.forEach((item) => {
+    const { date, time } = formatISTDateTime(item.createdAt);
+
+    const row = [
+      item.sn,
+      `"${data.transactionId}"`,
+      `"${data.storeName}"`,
+      `"${data.vendorName}"`,
+      `"${item.materialType}"`,
+      item.weight,
+      item.weightSource,
+      date,
+      time,
+    ];
+    csvString += row.join(",") + "\n";
+  });
+
+  return {
+    data: csvString,
+    fileName: `${data.transactionId}_Data.csv`,
+    mimeType: "text/csv",
   };
+};
+
+const generatePDF = (data) => {
+  const htmlContent = `
+        <html>
+            <head>
+                <style>
+                    body { font-family: sans-serif; padding: 15px; }
+                    .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #ccc; padding-bottom: 10px; }
+                    .store { font-size: 20px; font-weight: bold; color: #1e40af; }
+                    .info { font-size: 12px; margin: 5px 0; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    th, td { border: 1px solid #ddd; padding: 8px; font-size: 10px; }
+                    th { background-color: #eef2ff; color: #1e40af; }
+                    .total-row { background-color: #e0f2fe; font-weight: bold; font-size: 12px; }
+                    .signature-area { display: flex; justify-content: space-around; width: 100%; margin-top: 40px; }
+                    .signature-box { text-align: center; width: 40%; }
+                    .sig-placeholder { height: 60px; border-bottom: 1px solid #aaa; margin-top: 5px; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <div class="store">${data.storeName}</div>
+                    <div class="info">${data.storeLocation}</div>
+                    <div class="info">Transaction ID: ${
+                      data.transactionId
+                    } | Vendor: ${data.vendorName}</div>
+                </div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>SN</th>
+                            <th>Material</th>
+                            <th style="text-align:center;">Weight (kg)</th>
+                            <th>Time & Source</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.items
+                          .map((item) => {
+                            const { date, time } = formatISTDateTime(
+                              item.createdAt
+                            );
+                            const source =
+                              item.weightSource === "system" ? "Sys" : "Man";
+
+                            return `
+                                <tr>
+                                    <td>${item.sn}</td>
+                                    <td>${item.materialType}</td>
+                                    <td style="text-align:center;">${item.weight}</td>
+                                    <td>
+                                        Date: ${date}<br/>
+                                        Time: ${time} (${source})
+                                    </td>
+                                </tr>
+                            `;
+                          })
+                          .join("")}
+                        <tr class="total-row">
+                            <td colspan="2" style="text-align:right; padding-right:10px;">Grand Total Weight:</td>
+                            <td style="text-align:center;">${
+                              data.grandTotalWeight
+                            }</td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="info" style="margin-top:20px;">Grand Total (in words): _______________________________________</div>
+
+                <div class="signature-area">
+                    <div class="signature-box">
+                        <div class="sig-placeholder">
+                            ${
+                              data.managerSignature
+                                ? '<img src="' +
+                                  data.managerSignature +
+                                  '" style="height:100%; width:100%; object-fit:contain;">'
+                                : ""
+                            }
+                        </div>
+                        <div style="font-weight: bold;">Manager Signature</div>
+                    </div>
+                    <div class="signature-box">
+                        <div class="sig-placeholder">
+                            ${
+                              data.vendorSignature
+                                ? '<img src="' +
+                                  data.vendorSignature +
+                                  '" style="height:100%; width:100%; object-fit:contain;">'
+                                : ""
+                            }
+                        </div>
+                        <div style="font-weight: bold;">Vendor Signature</div>
+                    </div>
+                </div>
+            </body>
+        </html>
+    `;
+
+  return {
+    data: htmlContent,
+    fileName: `${data.transactionId}_Bill.pdf`,
+    mimeType: "application/pdf",
+  };
+};
+
+export default function ExportDataScreen({ navigation, route }) {
+  const transactionData = route.params?.transactionData;
+
+  const [isExporting, setIsExporting] = useState(false);
+
+  if (!transactionData) {
+    return (
+      <View style={styles.centerScreen}>
+        <Text style={styles.noDataText}>
+          No transaction data found for export.
+        </Text>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={{ marginTop: 20 }}
+        >
+          <Text style={{ color: "#2563eb", fontWeight: "600" }}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const handleExport = async (type) => {
+
+    if (isExporting) return;
+    setIsExporting(true);
+
+    try {
+      let result;
+
+      if (type === "PDF") {
+        result = generatePDF(transactionData);
+      } else if (type === "CSV" || type === "Excel") {
+        
+        result = generateCSV(transactionData);
+      } else {
+        Alert.alert("Error", "Invalid export type selected.");
+        return;
+      }
+
+      if (type === "PDF") {
+        await Print.printAsync({
+          html: result.data,
+        });
+        Alert.alert(
+          "Success",
+          "PDF document sent to device's Print/Save dialog."
+        );
+      } else {
+        const fileUri = FileSystem.cacheDirectory + result.fileName;
+
+       await FileSystem.writeAsStringAsync(fileUri, result.data, {
+    encoding: FileSystem.EncodingType.UTF8, 
+});
+
+        if (!(await Sharing.isAvailableAsync())) {
+          Alert.alert("Error", "Sharing is not available on this device.");
+          return;
+        }
+
+        await Sharing.shareAsync(fileUri, {
+          mimeType: result.mimeType,
+          dialogTitle: `Share or Save ${type} Data`,
+        });
+
+        Alert.alert(
+          "Success",
+          `${type} data ready. Please select a destination to save or share.`
+        );
+      }
+    } catch (error) {
+      console.error(`Export ${type} error:`, error);
+      Alert.alert(
+        "Export Failed ",
+        `An error occurred during ${type} export. Ensure you have file permissions and the device supports printing/sharing.`
+      );
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const ExportOption = ({
+    type,
+    title,
+    desc,
+    iconName,
+    iconColor,
+    borderColor,
+  }) => (
+    <TouchableOpacity
+      style={[styles.exportBox, { borderLeftColor: borderColor }]}
+      onPress={() => handleExport(type)}
+      disabled={isExporting}
+    >
+      {isExporting ? (
+        <View style={styles.iconContainer}>
+          <ActivityIndicator size="small" color={iconColor} />
+        </View>
+      ) : (
+        <View style={styles.iconContainer}>
+          <MaterialIcons name={iconName} size={34} color={iconColor} />
+        </View>
+      )}
+
+      <View style={styles.textContainer}>
+        <Text style={styles.exportTitle}>{title}</Text>
+        <Text style={styles.exportDesc}>{desc}</Text>
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
@@ -30,59 +308,44 @@ export default function ExportDataScreen({ navigation }) {
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.sectionTitle}>Choose Export Format</Text>
+        <Text style={styles.sectionTitle}>
+          Choose Export Format
+          (ID: {transactionData.transactionId})
+        </Text>
 
-        {/* Export Options */}
-        <TouchableOpacity
-          style={[styles.exportBox, { borderLeftColor: "#22c55e" }]}
-          onPress={() => handleExport("CSV")}
-        >
-          <View style={styles.iconContainer}>
-            <MaterialIcons name="table-view" size={34} color="#22c55e" />
-          </View>
-          <View style={styles.textContainer}>
-            <Text style={styles.exportTitle}>Export as CSV</Text>
-            <Text style={styles.exportDesc}>
-              Save your data in comma-separated format. Easy for spreadsheets and databases.
-            </Text>
-          </View>
-        </TouchableOpacity>
+        <ExportOption
+          type="PDF"
+          title="Export as PDF"
+          desc="Generate a well-formatted PDF report (visual bill) for printing or archival."
+          iconName="picture-as-pdf"
+          iconColor="#dc2626"
+          borderColor="#dc2626"
+        />
+        <ExportOption
+          type="CSV"
+          title="Export as CSV"
+          desc="Save raw data in comma-separated format. Best for spreadsheets and databases."
+          iconName="table-view"
+          iconColor="#22c55e"
+          borderColor="#22c55e"
+        />
 
-        <TouchableOpacity
-          style={[styles.exportBox, { borderLeftColor: "#2563eb" }]}
-          onPress={() => handleExport("Excel")}
-        >
-          <View style={styles.iconContainer}>
-            <MaterialIcons name="grid-on" size={34} color="#2563eb" />
-          </View>
-          <View style={styles.textContainer}>
-            <Text style={styles.exportTitle}>Export as Excel</Text>
-            <Text style={styles.exportDesc}>
-              Download data in Excel (.xlsx) format with full table structure.
-            </Text>
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.exportBox, { borderLeftColor: "#dc2626" }]}
-          onPress={() => handleExport("PDF")}
-        >
-          <View style={styles.iconContainer}>
-            <MaterialIcons name="picture-as-pdf" size={34} color="#dc2626" />
-          </View>
-          <View style={styles.textContainer}>
-            <Text style={styles.exportTitle}>Export as PDF</Text>
-            <Text style={styles.exportDesc}>
-              Generate a well-formatted PDF report of your stored data.
-            </Text>
-          </View>
-        </TouchableOpacity>
+        <ExportOption
+          type="Excel"
+          title="Export as Excel"
+          desc="Download structured data, using CSV format as a cross-platform solution."
+          iconName="grid-on"
+          iconColor="#2563eb"
+          borderColor="#2563eb"
+        />
 
         {/* Info Box */}
         <View style={styles.infoBox}>
           <MaterialIcons name="info" size={22} color="#2563eb" />
           <Text style={styles.infoText}>
-            You can export only your authorized dataset. Make sure your internet connection is active.
+            File generation uses client-side processing. You will need to
+            confirm the save location or share the file using your device's
+            native controls.
           </Text>
         </View>
       </ScrollView>
@@ -95,6 +358,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f9fafb",
+  },
+  centerScreen: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  noDataText: {
+    fontSize: 16,
+    color: "#dc2626",
+    fontWeight: "500",
   },
   header: {
     flexDirection: "row",

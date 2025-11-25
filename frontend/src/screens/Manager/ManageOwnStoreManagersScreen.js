@@ -7,6 +7,7 @@ import {
   ScrollView,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import colors from '../../colors'
 
 export default function ManageOwnStoreManagersScreen({ navigation }) {
 
@@ -18,7 +19,7 @@ export default function ManageOwnStoreManagersScreen({ navigation }) {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
+          <MaterialIcons name="arrow-back" size={26} color={colors.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Manager Management</Text>
         <View style={{ width: 26 }} />
@@ -27,7 +28,7 @@ export default function ManageOwnStoreManagersScreen({ navigation }) {
       {/* Content */}
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.iconCircle}>
-          <MaterialIcons name="supervisor-account" size={60} color="#2563eb" />
+          <MaterialIcons name="supervisor-account" size={60} color={colors.primary} />
         </View>
 
         <Text style={styles.subTitle}>Manager Control Panels</Text>
@@ -58,7 +59,7 @@ export default function ManageOwnStoreManagersScreen({ navigation }) {
 
         {/* Info Section */}
         <View style={styles.infoBox}>
-          <MaterialIcons name="info-outline" size={22} color="#2563eb" />
+          <MaterialIcons name="info-outline" size={22} color={colors.primary} />
           <Text style={styles.infoText}>
             Only admins can promote users or modify their access roles.
           </Text>
@@ -93,7 +94,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#2563eb",
+    color: colors.primary,
   },
   content: {
     paddingHorizontal: 20,
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#2563eb",
+    backgroundColor: colors.primary,
     paddingVertical: 14,
     borderRadius: 14,
   },

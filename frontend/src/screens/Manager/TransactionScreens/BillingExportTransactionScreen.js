@@ -1,26 +1,86 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Image,
-  TextInput,
   ScrollView,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
 import api from "../../../api/api";
 import { useFocusEffect } from "@react-navigation/native";
+import colors from '../../../colors'
 
 export default function BillingExportTransactionScreen({ navigation }) {
   const [store, setStore] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [transactionData, setTransactionData] = useState(null);
+  const [itemsList, setItemsList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [managerSignature, setManagerSignature] = useState(null);
   const [vendorSignature, setVendorSignature] = useState(null);
 
-  // Fetch store + manager profile
+  //   Converts ISO string to IST formatted date and time.
+  const formatISTDateTime = (isoString) => {
+    if (!isoString) return { date: "N/A", time: "N/A" };
+    try {
+      const date = new Date(isoString);
+      
+      const optionsDate = {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        timeZone: 'Asia/Kolkata', 
+      };
+      
+      const optionsTime = {
+        hour: 'numeric',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+        timeZone: 'Asia/Kolkata', 
+      };
+      
+      const formattedDate = date.toLocaleDateString('en-IN', optionsDate);
+      const formattedTime = date.toLocaleTimeString('en-IN', optionsTime);
+
+      return { date: formattedDate, time: formattedTime };
+    } catch (e) {
+      console.error("Date formatting error:", e);
+      return { date: "Invalid Date", time: "Invalid Time" };
+    }
+  };
+
+  //  * Helper to show image URI for item.
+  const getItemImageUri = (imageField) => {
+    if (!imageField) return null;
+    if (typeof imageField !== "string") return null;
+
+    if (imageField.startsWith("data:")) return imageField;
+    if (/^[A-Za-z0-9+/=]+$/.test(imageField) && imageField.length > 200) {
+      return `data:image/png;base64,${imageField}`;
+    }
+
+    const base = api?.defaults?.baseURL || "";
+    return `${base.replace(/\/$/, "")}/uploads/${imageField}`;
+  };
+
+  // Calculates the grand total weight of all items.
+  const calculateGrandTotal = (items) => {
+    return items.reduce((total, item) => {
+      const weight = parseFloat(item.weight) || 0;
+      return total + weight;
+    }, 0).toFixed(2); 
+  };
+
+  // --- DATA FETCHING ---
+
+  // Fetch store + manager profile on mount
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -34,47 +94,112 @@ export default function BillingExportTransactionScreen({ navigation }) {
     fetchProfile();
   }, []);
 
+  // Fetch transaction data and items
+  const fetchTransactionData = async () => {
+    setLoading(true);
+    try {
+      const stored = await AsyncStorage.getItem("todayTransaction");
+      const parsed = JSON.parse(stored);
+      const transactionId = parsed?.transactionId;
+
+      if (!transactionId) {
+        setLoading(false);
+        Alert.alert("No Transaction", "No active transaction ID found for billing.");
+        return;
+      }
+
+      const res = await api.get(
+        `/manager/transaction/todays-transactions/${transactionId}`
+      );
+
+      if (res.data?.success && res.data?.transactions?.[0]) {
+        const transaction = res.data.transactions[0];
+        setTransactionData(transaction);
+        
+        // Reverse the items list so the newest item appears first (SN 1)
+        const reversedItems = [...(transaction.items || [])].reverse(); 
+        setItemsList(reversedItems); 
+      }
+    } catch (e) {
+      console.log("Fetch transaction data error:", e?.response?.data || e.message);
+      Alert.alert("Error", "Failed to fetch transaction data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load signatures and transaction data when screen comes into focus
   useFocusEffect(
-  React.useCallback(() => {
-    const loadSignatures = async () => {
-      const vendorSig = await AsyncStorage.getItem("vendorSignature");
-      const managerSig = await AsyncStorage.getItem("managerSignature");
+    useCallback(() => {
+      const loadSignatures = async () => {
+        const managerSig = await AsyncStorage.getItem("managerSignature");
+        const vendorSig = await AsyncStorage.getItem("vendorSignature");
+        if (managerSig) setManagerSignature(managerSig);
+        if (vendorSig) setVendorSignature(vendorSig);
+      };
+      
+      loadSignatures();
+      fetchTransactionData();
+    },[])
+  );
 
-      if (managerSig) setManagerSignature(managerSig);
-      if (vendorSig) setVendorSignature(vendorSig);
-    };
 
-    loadSignatures();
-  }, [])
-);
+  const grandTotalWeight = calculateGrandTotal(itemsList);
+  
+  if (loading) {
+    return (
+      <View style={styles.centerScreen}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={{ marginTop: 10 }}>Loading Transaction Details...</Text>
+      </View>
+    );
+  }
 
-  // Load both signatures from async storage
-  // useFocusEffect(() => {
-  //   loadSignatures();
-  // }, []);
+  // Helper to get today's IST date for the header
+  const todayISTDate = new Date().toLocaleDateString('en-IN', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+    timeZone: 'Asia/Kolkata',
+  });
 
-  // const loadSignatures = async () => {
-  //   const managerSig = await AsyncStorage.getItem("managerSignature");
-  //   const vendorSig = await AsyncStorage.getItem("vendorSignature");
+  // Function to prepare and pass data to export screen
+  const navigateToExport = () => {
+      const dataToExport = {
+          transactionId: transactionData?.transactionId,
+          storeName: store?.name || "Store N/A",
+          storeLocation: store?.storeLocation || "Location N/A",
+          managerEmail: profile?.email || "Manager N/A",
+          vendorName: transactionData?.vendorName || "Vendor N/A",
+          grandTotalWeight: grandTotalWeight,
+          billDate: todayISTDate, // Use the formatted header date
+          // Map items to include serial number and clean weight data
+          items: itemsList.map((item, index) => ({
+              sn: index + 1, // Serial Number (1, 2, 3...)
+              materialType: item.materialType,
+              weight: parseFloat(item.weight).toFixed(2),
+              weightSource: item.weightSource,
+              createdAt: item.createdAt, // ISO string for accurate time conversion on export screen
+          })),
+          managerSignature: managerSignature,
+          vendorSignature: vendorSignature,
+      };
 
-  //   if (managerSig) setManagerSignature(managerSig);
-  //   if (vendorSig) setVendorSignature(vendorSig);
-  // };
+      navigation.navigate("ExportDataScreen", { transactionData: dataToExport });
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: "#f9fafb" }}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
+          <MaterialIcons name="arrow-back" size={26} color={colors.primary} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>Billing Transaction</Text>
 
-        <TouchableOpacity
-          onPress={() => navigation.navigate("ExportDataScreen")}
-        >
-          <MaterialIcons name="file-download" size={26} color="#2563eb" />
+        <TouchableOpacity onPress={navigateToExport}>
+          <MaterialIcons name="file-download" size={26} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -82,96 +207,123 @@ export default function BillingExportTransactionScreen({ navigation }) {
         {/* BILL AREA */}
         <View style={styles.billBox}>
           <Text style={styles.storeName}>
-            {store?.name || "Store Name Loading..."}
+            {store?.name || "Store Name N/A"}
           </Text>
           <Text style={styles.storeLocation}>
-            {store?.storeLocation || "Location Loading..."}
+            {store?.storeLocation || "Location N/A"}
           </Text>
 
           {/* Transaction Info */}
           <View style={styles.rowBetween}>
-            <Text style={styles.label}>Date: 24/11/2025</Text>
-            <Text style={styles.label}>Transaction ID: TXN-000123</Text>
+            <Text style={styles.label}>
+              <Text style={styles.labelBold}>Date :</Text> {todayISTDate}
+            </Text>
+            <Text style={styles.label}>
+              <Text style={styles.labelBold}>Transaction ID :</Text> {transactionData?.transactionId || "N/A"}
+            </Text>
           </View>
-
-          {/* Manager + Vendor */}
-          <Text style={styles.label}>
-            Manager: {profile?.email || "Loading..."}
-          </Text>
-          <Text style={styles.label}>Vendor: (Will Fetch Later)</Text>
+          <View style={styles.rowBetween}>
+             <Text style={styles.label}>
+              <Text style={styles.labelBold}>Manager :</Text> {profile?.email || "Loading..."}
+            </Text>
+             <Text style={styles.label}>
+              <Text style={styles.labelBold}>Vendor :</Text> {transactionData?.vendorName || "N/A"}
+            </Text>
+          </View>
+         
+          <Text style={styles.subHeading}>Transaction Items</Text>
 
           {/* TABLE */}
           <View style={styles.table}>
             <View style={styles.tableRowHeader}>
-              <Text style={styles.tableHeaderText}>SN</Text>
-              <Text style={styles.tableHeaderText}>Item</Text>
-              <Text style={styles.tableHeaderText}>Weight</Text>
+              <Text style={[styles.tableHeaderText, { flex: 0.5 }]}>SN</Text>
+              <Text style={[styles.tableHeaderText, { flex: 1 }]}>Material</Text>
+              <Text style={[styles.tableHeaderText, { flex: 0.9, textAlign: 'center' }]}>Weight (kg)</Text>
+              <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'center' }]}>Time & Source</Text>
             </View>
 
-            <View style={styles.tableRow}>
-              <Text style={styles.tableData}>1</Text>
-              <View style={styles.centerImageWrapper}>
-                <Image
-                  source={{ uri: "https://picsum.photos/50" }}
-                  style={styles.itemImage}
-                />
-              </View>
-              <Text style={styles.tableData}>120 gm</Text>
-            </View>
+            {itemsList.length === 0 ? (
+                <Text style={styles.noItemsText}>No items added to this transaction.</Text>
+            ) : (
+                itemsList.map((item, index) => {
+                  const imgUri = getItemImageUri(item.image);
+                  const { date, time } = formatISTDateTime(item.createdAt);
+                  const serialNumber = index + 1; 
+                  const weightSourceTag = item.weightSource === "system" ? "Sys" : "Man";
+                  const weightSourceColor = item.weightSource === "system" ? '#10b981' : '#f59e0b';
+                  const weightSourceBg = item.weightSource === "system" ? '#d1fae5' : '#fef3c7';
 
-            <View style={styles.tableRow}>
-              <Text style={styles.tableData}>2</Text>
-              <View style={styles.centerImageWrapper}>
-                <Image
-                  source={{ uri: "https://picsum.photos/51" }}
-                  style={styles.itemImage}
-                />
-              </View>
-              <Text style={styles.tableData}>80 gm</Text>
-            </View>
 
-            {/* Total Row */}
+                  return (
+                    <View key={item._id || index} style={styles.tableRow}>
+                      <Text style={[styles.tableData, { flex: 0.5 }]}>{serialNumber}</Text>
+                      <View style={[styles.itemDetailWrapper, { flex: 3 }]}>
+                         <Image
+                            source={imgUri ? { uri: imgUri } : require('../../../../assets/icon.png')}
+                            style={styles.itemImage}
+                          />
+                          <Text style={styles.materialText}>{item.materialType}</Text>
+                      </View>
+                      <Text style={[styles.tableData, { flex: 1.5, fontWeight: '700', textAlign: 'center' }]}>
+                        {parseFloat(item.weight).toFixed(2)}
+                      </Text>
+                      <View style={[styles.dateTimeSourceWrapper, { flex: 2.5 }]}>
+                        <Text style={styles.dateTimeText}>{date}</Text>
+                        <View style={styles.dateTimeRow}>
+                            <Text style={styles.dateTimeText}>{time}</Text>
+                            <View style={[styles.sourceTag, { backgroundColor: weightSourceBg }]}>
+                                <Text style={[styles.sourceText, { color: weightSourceColor }]}>
+                                    {weightSourceTag}
+                                </Text>
+                            </View>
+                        </View>
+                      </View>
+                    </View>
+                  );
+                })
+            )}
+
+            {/* Grand Total Row */}
             <View style={styles.tableRowTotal}>
-              <Text style={styles.tableTotalText}>Grand Total : </Text>
-              <TextInput
-                placeholder="Enter Total"
-                style={styles.totalInput}
-                keyboardType="numeric"
-              />
+              <Text style={[styles.tableTotalText, { flex: 7.5, textAlign: 'right', paddingRight: 10 }]}>
+                Grand Total Weight:
+              </Text>
+              <Text style={[styles.tableTotalValue, { flex: 2.5, textAlign: 'center' }]}>
+                {grandTotalWeight} kg
+              </Text>
             </View>
           </View>
 
-          {/* Total Words */}
+          {/* Total Words - Placeholder */}
           <Text style={styles.totalWords}>
             Grand Total (in words): _______________________________________
           </Text>
 
-
           <View style={styles.signatureRow}>
-
             {/* MANAGER SIGNATURE */}
             <View style={{ alignItems: "center" }}>
+              <Text style={styles.signatureLabel}>Manager Signature</Text>
               {managerSignature ? (
                 <Image
                   source={{ uri: managerSignature }}
                   style={styles.signatureImg}
                 />
               ) : (
-                <Image
-                  source={{ uri: "https://picsum.photos/55" }}
-                  style={styles.signatureImg}
-                />
+                <View style={styles.signaturePlaceholder} />
               )}
-              <Text style={styles.signatureLabel}>Manager Signature</Text>
             </View>
 
             {/* VENDOR SIGNATURE */}
             <View style={{ alignItems: "center" }}>
-                  <Image
-                    source={{ uri: vendorSignature }}
-                    style={styles.signatureImg}
-                  />
-                  <Text style={styles.signatureLabel}>Vendor Signature</Text>
+              <Text style={styles.signatureLabel}>Vendor Signature</Text>
+              {vendorSignature ? (
+                <Image
+                  source={{ uri: vendorSignature }}
+                  style={styles.signatureImg}
+                />
+              ) : (
+                <View style={styles.signaturePlaceholder} />
+              )}
             </View>
           </View>
 
@@ -183,8 +335,9 @@ export default function BillingExportTransactionScreen({ navigation }) {
         {/* Export */}
         <TouchableOpacity
           style={styles.exportBtn}
-          onPress={() => navigation.navigate("ExportDataScreen")}
+          onPress={navigateToExport}
         >
+          <MaterialIcons name="file-download" size={20} color="#fff" style={{ marginRight: 8 }} />
           <Text style={styles.exportText}>Export Bill</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -194,6 +347,12 @@ export default function BillingExportTransactionScreen({ navigation }) {
 
 /* ---------------- STYLES ---------------- */
 const styles = StyleSheet.create({
+  centerScreen: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -204,111 +363,188 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     elevation: 3,
   },
-  headerTitle: { fontSize: 22, fontWeight: "700", color: "#2563eb" },
+  headerTitle: { fontSize: 22, fontWeight: "700", color: colors.primary },
   billBox: {
     backgroundColor: "#fff",
     padding: 20,
     borderRadius: 16,
     elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
-  storeName: { fontSize: 22, fontWeight: "800", textAlign: "center" },
+  storeName: { fontSize: 24, fontWeight: "800", textAlign: "center", color: '#1e40af' },
   storeLocation: {
     fontSize: 14,
     textAlign: "center",
     marginBottom: 15,
     color: "#555",
   },
+  subHeading: {
+    fontSize: 18,
+    fontWeight: "700",
+    marginTop: 20,
+    marginBottom: 10,
+    color: '#374151',
+  },
+  rowBetween: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between',
+    flexWrap: 'wrap', 
+    marginVertical: 4,
+    paddingHorizontal: 5
+  },
+  label: { fontSize: 14, color: "#333", paddingTop: 5, width: '50%' },
+  labelBold: { fontWeight: '700' },
 
-  rowBetween: { marginVertical: 8 },
-  label: { fontSize: 15, marginVertical: 5, color: "#333" },
-
-  table: { borderWidth: 1, borderColor: "#ccc", marginTop: 15 },
+  table: { borderWidth: 1, borderColor: "#ccc", marginTop: 5 },
 
   tableRowHeader: {
     flexDirection: "row",
-    backgroundColor: "#e5e7eb",
-    padding: 10,
+    backgroundColor: "#eef2ff", 
+    paddingVertical: 10,
+    paddingHorizontal: 5,
+    borderBottomWidth: 1,
+    borderColor: "#ccc",
   },
-  tableHeaderText: { flex: 1, fontWeight: "700" },
+  tableHeaderText: { flex: 1, fontWeight: "800", fontSize: 13, color: '#1e40af', textAlign: 'left' },
 
   tableRow: {
     flexDirection: "row",
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 5,
     borderTopWidth: 1,
-    borderColor: "#ddd",
+    borderColor: "#eee",
     alignItems: "center",
   },
-  centerImageWrapper: { flex: 1, alignItems: "center" },
-
-  tableData: { flex: 1 },
-  itemImage: { width: 40, height: 40, borderRadius: 4 },
+  tableData: { flex: 1, fontSize: 13, color: '#1f2937' },
+  
+  itemDetailWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 5,
+  },
+  itemImage: { 
+    width: 30, 
+    height: 30, 
+    borderRadius: 4, 
+    marginRight: 8,
+    backgroundColor: '#f3f4f6' 
+  },
+  materialText: {
+    fontSize: 13,
+    fontWeight: '500',
+    flexShrink: 1,
+  },
+  
+  dateTimeSourceWrapper: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    paddingLeft: 5,
+  },
+  dateTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 2,
+  },
+  dateTimeText: {
+    fontSize: 11,
+    color: '#4b5563',
+  },
+  sourceTag: {
+    paddingVertical: 2,
+    paddingHorizontal: 5,
+    borderRadius: 4,
+    marginLeft: 1,
+  },
+  sourceText: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
 
   tableRowTotal: {
     flexDirection: "row",
-    padding: 10,
-    borderTopWidth: 1,
-    borderColor: "#ddd",
+    paddingVertical: 12,
+    paddingHorizontal: 5,
+    borderTopWidth: 2,
+    borderColor: "#1e40af", 
+    backgroundColor: '#e0f2fe', 
     alignItems: "center",
   },
-  tableTotalText: { flex: 1, fontWeight: "700" },
-  totalInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#aaa",
-    borderRadius: 6,
-    padding: 6,
+  tableTotalText: { fontWeight: "800", fontSize: 14, color: '#1e40af' },
+  tableTotalValue: { fontWeight: "800", fontSize: 15, color: '#b91c1c' },
+  
+  noItemsText: {
+    textAlign: 'center',
+    padding: 15,
+    color: '#6b7280',
+    fontStyle: 'italic',
   },
 
-  totalWords: { marginTop: 10, fontSize: 13, color: "#333" },
-
-  // subHeading: {
-  //   fontSize: 18,
-  //   fontWeight: "700",
-  //   marginTop: 20,
-  //   marginBottom: 10,
-  // },
+  totalWords: { 
+    marginTop: 15, 
+    fontSize: 13, 
+    color: "#333",
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    paddingBottom: 5,
+  },
 
   signatureRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 20,
+    justifyContent: "space-around",
+    marginTop: 30,
+    paddingHorizontal: 10,
   },
 
   signatureImg: {
-    width: 90,
-    height: 90,
-    borderRadius: 8,
-    backgroundColor: "#eee",
+    width: 100,
+    height: 60,
+    borderBottomWidth: 1,
+    borderColor: '#aaa',
+    backgroundColor: '#f3f4f6',
+    resizeMode: 'contain',
+    marginTop: 5,
   },
-  signatureLabel: { marginTop: 5, fontSize: 13, color: "#333" },
-
-  vendorSignBtn: {
-    backgroundColor: "#2563eb",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 12,
+  signaturePlaceholder: {
+    width: 100,
+    height: 60,
+    borderBottomWidth: 1,
+    borderColor: '#aaa',
+    marginTop: 5,
+  },
+  signatureLabel: { 
+    marginTop: 5, 
+    fontSize: 12, 
+    color: "#4b5563",
+    fontWeight: '600'
   },
 
   disclaimer: {
-    marginTop: 20,
+    marginTop: 25,
     fontSize: 12,
     textAlign: "center",
     color: "#777",
+    fontStyle: 'italic',
   },
 
   exportBtn: {
-    backgroundColor: "#2563eb",
+    backgroundColor: colors.primary,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderRadius: 12,
     marginTop: 20,
+    elevation: 3,
   },
   exportText: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 17,
+    fontWeight: "700",
   },
 });
-

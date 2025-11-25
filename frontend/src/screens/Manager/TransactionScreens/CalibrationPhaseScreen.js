@@ -16,6 +16,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { runOcrOnImage } from "../../../ocr/ocrService";
 import { parseWeight } from "../../../ocr/parseWeight";
 import api from "../../../api/api";
+import colors from "../../../colors"
 
 export default function CalibrationPhaseScreen({ navigation }) {
   const cameraRef = useRef(null);
@@ -23,6 +24,7 @@ export default function CalibrationPhaseScreen({ navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [photo, setPhoto] = useState(null);
   const [fetchWeight, setFetchWeight] = useState("");
+  const [enterWeight, setEnterWeight] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [canCalibrate, setCanCalibrate] = useState(false);
@@ -70,7 +72,7 @@ export default function CalibrationPhaseScreen({ navigation }) {
   };
 
   const handleCalibrate = async () => {
-    if (!fetchWeight) {
+    if (!fetchWeight || !enterWeight || !photo) {
       alert("Weight missing.");
       return;
     }
@@ -84,6 +86,7 @@ export default function CalibrationPhaseScreen({ navigation }) {
 
       const payload = {
         fetchWeight,
+        enterWeight,
         image: `data:image/jpeg;base64,${photo.base64}`,
       };
 
@@ -133,7 +136,7 @@ export default function CalibrationPhaseScreen({ navigation }) {
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
+          <MaterialIcons name="arrow-back" size={26} color={colors.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Calibration Phase</Text>
         <View style={{ width: 26 }} />
@@ -163,17 +166,24 @@ export default function CalibrationPhaseScreen({ navigation }) {
         )}
 
         <View style={styles.inputCard}>
-          <Text style={styles.inputLabel}>Fetched Weight</Text>
+          <Text style={styles.inputLabel}>Fetched Weight (auto)</Text>
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.input}
               value={fetchWeight}
-              // editable={false}
-              // making editable --
-              onChangeText={setFetchWeight}
+              editable={false}
+            />
+            <Text style={styles.unit}>kg</Text>
+          </View>
+
+          <Text style={styles.inputLabel}>Enter Weight (manual)</Text>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.input}
+              value={enterWeight}
+              onChangeText={setEnterWeight}
               keyboardType="numeric"
               editable={true}
-              // --
             />
             <Text style={styles.unit}>kg</Text>
           </View>
@@ -184,6 +194,17 @@ export default function CalibrationPhaseScreen({ navigation }) {
             <Text style={styles.mainBtnText}>Calibrate</Text>
           </TouchableOpacity>
         )}
+
+       {/* Info Footer */}
+       {!canCalibrate && (
+            <View style={styles.infoBox}>
+              <MaterialIcons name="info-outline" size={22} color={colors.primary} />
+              <Text style={styles.infoText}>
+                Zero error must be less than 0.1 kg
+              </Text>
+            </View>
+            )}
+
       </ScrollView>
 
       {loading && (
@@ -207,7 +228,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     elevation: 5,
   },
-  headerTitle: { fontSize: 22, fontWeight: "700", color: "#2563eb" },
+  headerTitle: { fontSize: 22, fontWeight: "700", color: colors.primary },
   card: {
     width: "90%",
     height: 280,
@@ -222,7 +243,7 @@ const styles = StyleSheet.create({
   captureBtn: {
     flexDirection: "row",
     marginTop: 15,
-    backgroundColor: "#2563eb",
+    backgroundColor: colors.primary,
     paddingVertical: 13,
     borderRadius: 12,
     width: "70%",
@@ -248,13 +269,13 @@ const styles = StyleSheet.create({
     width: "90%",
     alignSelf: "center",
   },
-  inputLabel: { fontSize: 14, fontWeight: "600" },
+  inputLabel: { fontSize: 14, fontWeight: "600",padding:5 },
   inputWrapper: {
     flexDirection: "row",
     backgroundColor: "#f3f4f6",
     paddingHorizontal: 12,
     borderRadius: 12,
-    marginTop: 8,
+    marginTop: 2,
     alignItems: "center",
   },
   input: {
@@ -287,5 +308,20 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
+  },
+   infoBox: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#eff6ff",
+    padding: 14,
+    borderRadius: 12,
+    margin: 15,
+  },
+  infoText: {
+    color: "#1e3a8b",
+    fontSize: 14,
+    marginLeft: 10,
+    flex: 1,
+    lineHeight: 20,
   },
 });

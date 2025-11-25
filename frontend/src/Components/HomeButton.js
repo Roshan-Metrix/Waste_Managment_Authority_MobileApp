@@ -7,7 +7,7 @@ const HomeButton = () => {
 
   return (
     <TouchableOpacity onPress={() => navigation.navigate("UserScreen")}>
-      <MaterialIcons name="home" size={35} color="#007AFF" />
+      <MaterialIcons name="home" size={35} color="#1e40af" />
     </TouchableOpacity>
   );
 };

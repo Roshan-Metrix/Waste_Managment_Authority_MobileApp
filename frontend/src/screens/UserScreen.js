@@ -24,46 +24,44 @@ export default function UserScreen({ navigation }) {
   }, [user]);
 
 
-const goToTransaction = async () => {
-  try {
+// const goToTransaction = async () => {
+//   try {
     
-    const today = new Date().toLocaleString("en-CA", { timeZone: "Asia/Kolkata" }).split(",")[0];
+//     const today = new Date().toLocaleString("en-CA", { timeZone: "Asia/Kolkata" }).split(",")[0];
 
-    const data = await getTodayTransaction();
+//     const data = await getTodayTransaction();
 
-    if (!data || data === "null" || data === "undefined") {
-      await clearOldTransaction();
-      return navigation.navigate("AddTransactionScreen");
-    }
+//     if (!data || data === "null" || data === "undefined") {
+//       await clearOldTransaction();
+//       return navigation.navigate("AddTransactionScreen");
+//     }
+//     let parsed = null;
+//     try {
+//       parsed = typeof data === "string" ? JSON.parse(data) : data;
+//     } catch (err) {
+//       console.log("JSON Parse failed -> clearing storage");
+//       await clearOldTransaction();
+//       return navigation.navigate("AddTransactionScreen");
+//     }
+//     const storedDate = parsed?.date;
+//     const storedId = parsed?.transactionId;
 
-    let parsed = null;
-    try {
-      parsed = typeof data === "string" ? JSON.parse(data) : data;
-    } catch (err) {
-      console.log("JSON Parse failed -> clearing storage");
-      await clearOldTransaction();
-      return navigation.navigate("AddTransactionScreen");
-    }
+//     console.log("Stored date:", storedDate, "Today:", today);
 
-    const storedDate = parsed?.date;
-    const storedId = parsed?.transactionId;
+//     if (storedDate === today && storedId) {
+//       return navigation.navigate("ProcessTransactionScreen", {
+//         transactionId: storedId,
+//       });
+//     }
 
-    console.log("Stored date:", storedDate, "Today:", today);
+//     await clearOldTransaction();
+//     navigation.navigate("AddTransactionScreen");
 
-    if (storedDate === today && storedId) {
-      return navigation.navigate("ProcessTransactionScreen", {
-        transactionId: storedId,
-      });
-    }
-
-    await clearOldTransaction();
-    navigation.navigate("AddTransactionScreen");
-
-  } catch (error) {
-    console.log("goToTransaction Error:", error);
-    navigation.navigate("AddTransactionScreen");
-  }
-};
+//   } catch (error) {
+//     console.log("goToTransaction Error:", error);
+//     navigation.navigate("AddTransactionScreen");
+//   }
+// };
 
 
   const roleBoxes = {
@@ -84,7 +82,6 @@ const goToTransaction = async () => {
         icon: "supervisor-account",
         screen: "ManageManagerScreen",
       },
-      { title: "Manage Data", icon: "folder", screen: "ManageDataAdminScreen" },
       {
         title: "Notify Stores",
         icon: "notifications",
@@ -96,17 +93,18 @@ const goToTransaction = async () => {
         screen: "DataAnalysisScreen",
       },
     ],
-
+    
     manager: [
       {
         title: "Process Transaction",
         icon: "account-balance",
-        screen: goToTransaction,
+        // screen: "AddTransactionScreen",
+        screen: "AddProceedTransactionScreen",
       },
       {
         title: "Manage Data",
         icon: "folder",
-        screen: "ManageDataManagerScreen",
+        screen: "ManageDataScreen",
       },
       {
         title: "Manage Managers",
@@ -114,7 +112,6 @@ const goToTransaction = async () => {
         screen: "ManageOwnStoreManagersScreen",
       },
       { title: "View Tasks", icon: "assignment", screen: "ViewTasksScreen" },
-      { title: "History", icon: "history", screen: "HistoryManagersScreen" },
     ],
   };
 

@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Animated, Dimensions } from "react-native";
+import { View, Text, TouchableOpacity, Animated, Dimensions, Image } from "react-native";
 import { useRef, useEffect } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -18,7 +18,7 @@ export const SidebarMenu = ({ visible, onClose, role, navigation, logout, user }
   function roleReturn() {
     if (role === "admin") return "Admin";
     if (role === "manager") return "Manager";
-    return "Staff";
+    return "Store";
   }
 
   return (
@@ -26,20 +26,21 @@ export const SidebarMenu = ({ visible, onClose, role, navigation, logout, user }
       {/* Background Overlay */}
       {visible && (
         <TouchableOpacity
-          activeOpacity={1}
-          onPress={onClose}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0,0,0,0.35)",
-            zIndex: 5,
-          }}
+        activeOpacity={1}
+        onPress={onClose}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0,0,0,0.35)",
+          zIndex: 5,
+        }}
         />
       )}
 
+        
       {/* Sidebar Panel */}
       <Animated.View
         style={{
@@ -56,6 +57,7 @@ export const SidebarMenu = ({ visible, onClose, role, navigation, logout, user }
           elevation: 30,
         }}
       >
+        <Image source={require('../../assets/splash-icon.png')} style={{resizeMode:"contain",width:220,height:50,marginBottom:5,marginTop:-5}}/>
         {/* Role Header */}
         <View
           style={{
@@ -69,6 +71,7 @@ export const SidebarMenu = ({ visible, onClose, role, navigation, logout, user }
             elevation: 4,
           }}
         >
+
           <Text
             style={{
               fontSize: 20,
@@ -84,7 +87,6 @@ export const SidebarMenu = ({ visible, onClose, role, navigation, logout, user }
         {/* Menu Items */}
         {[
           { label: "Home", screen: "UserScreen", icon: "home" },
-          { label: "Saved Data", screen: "SavedDataScreen", icon: "save" },
           { label: "Search", screen: "SearchScreen", icon: "search" },
         ].map((item, i) => (
           <TouchableOpacity

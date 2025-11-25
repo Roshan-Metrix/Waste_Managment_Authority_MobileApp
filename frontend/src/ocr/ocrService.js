@@ -3,65 +3,72 @@
 
 // const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
 
+// // ---------------------- GEMINI OCR ----------------------
+
 // async function recognizeWithGemini(base64) {
 //   if (!GEMINI_API_KEY) {
-//     throw new Error("Missing EXPO_PUBLIC_GOOGLE_API_KEY");
+//     throw new Error("Missing EXPO_PUBLIC_GOOGLE_API_KEY in app config.");
 //   }
 
 //   console.log("🌐 Calling Gemini OCR API...");
 
 //   try {
-//     const response = await fetch(
-//       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyC6q74k2ISglwhacSSs1MvgurH47Y5wgrw`,
-//       {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//         body: JSON.stringify({
-//           contents: [
-//             {
-//               parts: [
-//                 {
-//                   inline_data: {
-//                     mime_type: "image/jpeg",
-//                     data: base64,
-//                   },
+//     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+//     const response = await fetch(url, {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+
+//       body: JSON.stringify({
+//         contents: [
+//           {
+//             parts: [
+//               {
+//                 inline_data: {
+//                   mime_type: "image/jpeg",
+//                   data: base64,
 //                 },
-//                 {
-//                   text: "Extract ONLY the weight number from this scale image. Do not add units or extra text.",
-//                 },
-//               ],
-//             },
-//           ],
-//         }),
-//       }
-//     );
+//               },
+//               {
+//                 text:
+//                   "Extract the WEIGHT value shown on this scale image. " +
+//                   "Return ONLY the numeric value (int or decimal). No units, no words.",
+//               },
+//             ],
+//           },
+//         ],
+//       }),
+//     });
 
 //     const json = await response.json();
 
 //     if (!response.ok) {
 //       console.warn("⚠️ Gemini OCR error:", json);
-//       throw new Error("Gemini OCR failed: " + response.status);
+//       throw new Error(`Gemini OCR failed: ${response.status} ${JSON.stringify(json)}`);
 //     }
 
-//     const text =
+//     const extracted =
 //       json?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
 
-//     return text;
+//     return extracted;
 //   } catch (err) {
 //     console.warn("⚠️ Gemini OCR error:", err);
 //     throw err;
 //   }
 // }
 
+// // ---------------------- MAIN ENTRY ----------------------
+
 // export async function runOcrOnImage(uri) {
 //   try {
 //     console.log("🔍 Starting OCR on:", uri);
 
+//     // Resize & compress image
 //     const manip = await manipulateAsync(
 //       uri,
-//       [{ resize: { width: 1000 } }],
+//       [{ resize: { width: 900 } }],
 //       { compress: 0.7, format: SaveFormat.JPEG }
 //     );
 
@@ -73,14 +80,23 @@
 
 //     console.log("📏 Base64 length:", base64.length);
 
-//     const weight = await recognizeWithGemini(base64);
-//     console.log("🎯 Gemini OCR Result:", weight);
+//     // ---- GEMINI OCR ----
+//     const rawWeight = await recognizeWithGemini(base64);
 
-//     if (!weight) {
+//     console.log("🎯 Gemini OCR Raw Result:", rawWeight);
+
+//     if (!rawWeight) {
 //       return "Unable to detect weight.";
 //     }
 
-//     return `Detected Weight: ${weight}`;
+//     // extract only number safely
+//     const numMatch = rawWeight.match(/\d+\.?\d*/);
+
+//     if (!numMatch) {
+//       return "Unable to detect numeric weight.";
+//     }
+
+//     return `Detected Weight: ${numMatch[0]}`;
 //   } catch (err) {
 //     console.error("❌ OCR Error:", err);
 //     throw new Error("OCR failed: " + err);
@@ -90,7 +106,6 @@
 // export async function terminateOcrWorker() {
 //   console.log("Gemini OCR: No cleanup required");
 // }
-
 
 
 

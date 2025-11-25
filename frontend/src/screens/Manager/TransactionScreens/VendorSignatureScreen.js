@@ -44,14 +44,14 @@ export default function VendorSignatureScreen({ navigation }) {
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
+          <MaterialIcons name="arrow-back" size={26} color="#1e40af" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Vendor Signature</Text>
+        <Text style={styles.headerTitle}>Signature</Text>
         <View style={{ width: 26 }} />
         <HomeButton />
       </View>
 
-      <Text style={styles.heading}>Signature</Text>
+      <Text style={styles.heading}>Vendor Signature</Text>
 
       {!submitted ? (
         <View style={styles.signatureBox}>
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#2563eb",
+    color: "#1e40af",
   },
 
   container: {
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   },
 
   submitBtn: {
-    backgroundColor: "#2C6BED",
+    backgroundColor: "#1e40af",
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: "center",

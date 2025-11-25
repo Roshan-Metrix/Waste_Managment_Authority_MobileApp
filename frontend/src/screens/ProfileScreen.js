@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "rea
 import { MaterialIcons } from "@expo/vector-icons";
 import { AuthContext } from "../context/AuthContext";
 import api from "../api/api";
+import colors from '../../src/colors'
 
 export default function ProfileScreen({ navigation }) {
   const { user } = useContext(AuthContext);
@@ -35,7 +36,7 @@ export default function ProfileScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563eb" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -45,7 +46,7 @@ export default function ProfileScreen({ navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
+          <MaterialIcons name="arrow-back" size={26} color={colors.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Profile</Text>
         <View style={{ width: 26 }} />
@@ -54,7 +55,7 @@ export default function ProfileScreen({ navigation }) {
       {/* Profile Box */}
       <View style={styles.profileBox}>
         <View style={styles.avatarContainer}>
-          <MaterialIcons name="person" size={90} color="#2563eb" />
+          <MaterialIcons name="person" size={90} color={colors.primary} />
         </View>
 
         {/* Show Admin Data */}
@@ -117,7 +118,7 @@ export default function ProfileScreen({ navigation }) {
 
       {/* Info Note */}
       {/* <View style={styles.infoBox}>
-        <MaterialIcons name="info" size={22} color="#2563eb" />
+        <MaterialIcons name="info" size={22} color={colors.primary} />
         <Text style={styles.infoText}>This profile is linked to your Decathlon internal account.</Text>
       </View> */}
     </View>
@@ -145,7 +146,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#2563eb",
+    color: colors.primary,
   },
   profileBox: {
     alignItems: "center",
@@ -178,7 +179,7 @@ const styles = StyleSheet.create({
   },
   roleHighlight: {
     fontWeight: "bold",
-    color: "#2563eb",
+    color: colors.primary,
   },
 
   /* Store Box */
@@ -202,20 +203,20 @@ const styles = StyleSheet.create({
   },
   storeHighlight: {
     fontWeight: "600",
-    color: "#2563eb",
+    color: colors.primary,
   },
 
   /* Change Password Button */
   changePasswordBtn: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#2563eb",
+    backgroundColor: colors.primary,
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 14,
     marginTop: 25,
     justifyContent: "center",
-    shadowColor: "#2563eb",
+    shadowColor: colors.primary,
     shadowOpacity: 0.25,
     shadowOffset: { width: 0, height: 2 },
     elevation: 4,

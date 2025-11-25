@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "rea
 import SignatureScreen from "react-native-signature-canvas";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
+import colors from "../../../colors"
 
 export default function CredentialVerificationScreen({ navigation }) {
   const signatureRef = useRef(null);
@@ -38,7 +39,7 @@ export default function CredentialVerificationScreen({ navigation }) {
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
+          <MaterialIcons name="arrow-back" size={26} color={colors.primary} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>Credential Verification</Text>
@@ -112,7 +113,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#2563eb",
+    color: colors.primary,
   },
 
   heading: {
@@ -133,7 +134,7 @@ const styles = StyleSheet.create({
   },
 
   submitBtn: {
-    backgroundColor: "#2C6BED",
+    backgroundColor: colors.primary,
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: "center",
