@@ -2,14 +2,15 @@ import React from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
+  StyleSheet,
   ScrollView,
+  Dimensions,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import colors from "../../colors";
+import colors from "../../../colors"; 
 
-export default function ManageOwnStoreManagersScreen({ navigation }) {
+export default function ManageDataScreen({ navigation }) {
   const handleAction = (screenName) => {
     navigation.navigate(screenName);
   };
@@ -24,34 +25,52 @@ export default function ManageOwnStoreManagersScreen({ navigation }) {
         >
           <MaterialIcons name="arrow-back" size={26} color={colors.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Manager Management</Text>
+        <Text style={styles.headerTitle}>Data Management</Text>
         <View style={{ width: 26 }} />
       </View>
 
       {/* Content */}
       <ScrollView contentContainerStyle={styles.content}>
-        {/* Info Card */}
         <View style={styles.infoCard}>
           <View style={styles.iconCircle}>
-            <MaterialIcons
-              name="supervised-user-circle"
-              size={48}
-              color={colors.primary}
-            />
+            <MaterialIcons name="storage" size={48} color={colors.primary} />
           </View>
-          <Text style={styles.subTitle}>Staff Account Hub</Text>
+          <Text style={styles.subTitle}>Centralized Record Hub</Text>
           <Text style={styles.desc}>
-            Manage all store managers and staff accounts here. You can add new
-            users, edit existing ones, or remove inactive accounts securely.
+            Access, review, and manage all your stored transaction data. Use the
+            tools below to ensure data integrity and compliance.
           </Text>
         </View>
 
         {/* Action Buttons */}
         <View style={styles.actionsContainer}>
-          {/* Add Manager Card/Button (Success/Creation Color) */}
+          {/* View All Data Card/Button */}
           <TouchableOpacity
-            style={[styles.actionCard, { backgroundColor: "#22c55e" }]} // Green
-            onPress={() => handleAction("AddOtherManagersScreen")}
+            style={[styles.actionCard, { backgroundColor: colors.primary }]}
+            onPress={() => handleAction("ShowAllTransaction")}
+            activeOpacity={0.8}
+          >
+            <View style={styles.actionIconContainer}>
+              <MaterialIcons name="dataset" size={30} color={colors.primary} />
+            </View>
+            <View style={styles.actionTextGroup}>
+              <Text style={styles.actionCardTitle}>View All Records</Text>
+              <Text style={styles.actionCardDesc}>
+                Browse and search through the complete transaction history.
+              </Text>
+            </View>
+            <MaterialIcons
+              name="arrow-forward-ios"
+              size={20}
+              color="#fff"
+              style={{ opacity: 0.7 }}
+            />
+          </TouchableOpacity>
+
+          {/* Export Data Card/Button */}
+          <TouchableOpacity
+            style={[styles.actionCard, { backgroundColor: "#22c55e" }]}
+            onPress={() => handleAction("VendorSignatureScreen")}
             activeOpacity={0.8}
           >
             <View
@@ -60,12 +79,12 @@ export default function ManageOwnStoreManagersScreen({ navigation }) {
                 { backgroundColor: "#dcfce7" },
               ]}
             >
-              <MaterialIcons name="person-add" size={30} color="#22c55e" />
+              <MaterialIcons name="file-download" size={30} color={"#22c55e"} />
             </View>
             <View style={styles.actionTextGroup}>
-              <Text style={styles.actionCardTitle}>Add New Manager</Text>
+              <Text style={styles.actionCardTitle}>Export Data (PDF/CSV)</Text>
               <Text style={styles.actionCardDesc}>
-                Create a new staff account and assign initial roles.
+                Generate reports and share transaction logs for auditing.
               </Text>
             </View>
             <MaterialIcons
@@ -76,32 +95,17 @@ export default function ManageOwnStoreManagersScreen({ navigation }) {
             />
           </TouchableOpacity>
 
-          {/* View All Managers Card/Button (Primary Color) */}
-          <TouchableOpacity
-            style={[styles.actionCard, { backgroundColor: colors.primary }]}
-            onPress={() => handleAction("ViewOwnStoreManagersScreen")}
-            activeOpacity={0.8}
-          >
-            <View style={styles.actionIconContainer}>
-              <MaterialIcons
-                name="people-alt"
-                size={30}
-                color={colors.primary}
-              />
-            </View>
-            <View style={styles.actionTextGroup}>
-              <Text style={styles.actionCardTitle}>View and Edit Staff</Text>
-              <Text style={styles.actionCardDesc}>
-                Review all staff, modify permissions, and deactivate users.
-              </Text>
-            </View>
+          {/* Placeholder for future actions (e.g., Settings) */}
+          <View style={styles.placeholderCard}>
             <MaterialIcons
-              name="arrow-forward-ios"
-              size={20}
-              color="#fff"
-              style={{ opacity: 0.7 }}
+              name="settings-suggest"
+              size={24}
+              color={"#f59e0b"}
             />
-          </TouchableOpacity>
+            <Text style={styles.placeholderText}>
+              More options coming soon...
+            </Text>
+          </View>
         </View>
       </ScrollView>
     </View>
@@ -143,7 +147,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  // Info Card Styles (Matches ManageDataScreen's infoCard)
+  // Info Card Styles
   infoCard: {
     backgroundColor: "#ffffff",
     borderRadius: 16,
@@ -185,7 +189,7 @@ const styles = StyleSheet.create({
     gap: 20,
   },
 
-  // Action Card (Button) Styles (Matches ManageDataScreen's actionCard)
+  // Action Card (Button) Styles
   actionCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -195,7 +199,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 6 },
     shadowRadius: 10,
-    elevation: 12, // Stronger elevation for pop-out effect
+    elevation: 12, 
   },
   actionIconContainer: {
     backgroundColor: "#e0e7ff",
@@ -216,6 +220,25 @@ const styles = StyleSheet.create({
   actionCardDesc: {
     color: "rgba(255, 255, 255, 0.8)",
     fontSize: 12,
+    fontWeight: "500",
+  },
+
+  // Placeholder Card Style
+  placeholderCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ffffff",
+    padding: 15,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#f59e0b" + "50",
+    marginTop: 10,
+    opacity: 0.8,
+  },
+  placeholderText: {
+    color: "#6b7280",
+    marginLeft: 10,
     fontWeight: "500",
   },
 });

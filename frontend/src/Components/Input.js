@@ -1,14 +1,42 @@
-import { TextInput, View } from "react-native";
+import React from "react";
+import { View, TextInput, StyleSheet } from "react-native";
 
-export default function Input({ placeholder, secure, onChangeText }) {
+
+const Input = ({ icon, placeholder, value, onChangeText, secure, placeholderTextColor = "#6b7280" }) => {
   return (
-    <View className="bg-gray-200 p-3 rounded-xl mb-3">
+    <View style={styles.container}>
+      {icon && <View style={styles.iconContainer}>{icon}</View>}
       <TextInput
+        style={styles.input}
         placeholder={placeholder}
-        secureTextEntry={secure}
+        placeholderTextColor={placeholderTextColor}
+        value={value}
         onChangeText={onChangeText}
-        className="text-black"
+        secureTextEntry={secure}
       />
     </View>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f9fafb",
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  iconContainer: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: "#1f2937",
+  },
+});
+
+export default Input;

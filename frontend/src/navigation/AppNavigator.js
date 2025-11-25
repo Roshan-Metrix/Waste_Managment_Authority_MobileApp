@@ -29,8 +29,6 @@ import AddManagersScreen from "../screens/Admin/ManageManagers/AddManagersScreen
 
 // Manager Screens
 import ExportDataScreen from "../screens/Manager/ExportDataScreen";
-import ManageDataScreen from "../screens/Manager/ManageDataScreen";
-import ViewTasksScreen from "../screens/Manager/ViewTasksScreen";
 import ManageOwnStoreManagersScreen from "../screens/Manager/ManageOwnStoreManagersScreen";
 import ViewOwnStoreManagersScreen from "../screens/Manager/ManageOtherManagers/ViewOwnStoreManagersScreen";
 import AddOtherManagersScreen from "../screens/Manager/ManageOtherManagers/AddOtherManagersScreen";
@@ -41,9 +39,12 @@ import CredentialVerificationScreen from "../screens/Manager/TransactionScreens/
 import VendorSignatureScreen from "../screens/Manager/TransactionScreens/VendorSignatureScreen";
 import BillingExportTransactionScreen from "../screens/Manager/TransactionScreens/BillingExportTransactionScreen";
 import ItemsTransactionScreen from "../screens/Manager/TransactionScreens/ItemsTransactionScreen";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import LoadingScreen from "../Components/LoadingScreen";
 import AddProceedTransactionScreen from "../screens/Manager/TransactionScreens/AddProceedTransactionScreen";
+import ViewTasksScreen from "../screens/Manager/ViewTasksScreen";
+import ManageDataScreen from "../screens/Manager/ManageData/ManageDataScreen";
+import ShowAllTransaction from "../screens/Manager/ManageData/ShowAllTransaction";
+import SelectedTransactionItems from "../screens/Manager/ManageData/SelectedTransactionItems";
 
 
 const Stack = createNativeStackNavigator();
@@ -106,6 +107,8 @@ if (loading) return <LoadingScreen />;
             <Stack.Screen name="ItemsTransactionScreen" component={ItemsTransactionScreen} />
             <Stack.Screen name="BillingExportTransactionScreen" component={BillingExportTransactionScreen} />
             <Stack.Screen name="AddProceedTransactionScreen" component={AddProceedTransactionScreen} />
+            <Stack.Screen name="ShowAllTransaction" component={ShowAllTransaction} />
+            <Stack.Screen name="SelectedTransactionItems" component={SelectedTransactionItems} />
           </>
         )}
       </Stack.Navigator>

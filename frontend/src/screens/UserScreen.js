@@ -12,7 +12,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { AuthContext } from "../context/AuthContext";
 import { SidebarMenu } from "../Components/SidebarMenu";
 import { getTodayTransaction, clearOldTransaction } from "../utils/storage";
-// import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import api from '../api/api'
 
 export default function UserScreen({ navigation }) {
   const { user, logout } = useContext(AuthContext);
@@ -24,45 +25,64 @@ export default function UserScreen({ navigation }) {
   }, [user]);
 
 
-// const goToTransaction = async () => {
-//   try {
-    
-//     const today = new Date().toLocaleString("en-CA", { timeZone: "Asia/Kolkata" }).split(",")[0];
+useEffect(() => {
+  const addStoreId = async () => {
+    if (user?.role === "manager") {
+      try {
+        const res = await api.get("/auth/manager/profile");
+        if (res.data.success) {
+          await AsyncStorage.setItem("storeId", res.data.store.storeId);
+        }
+      } catch (error) {
+        console.log("Manager Profile Fetch Error:", error.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
 
-//     const data = await getTodayTransaction();
+  addStoreId();
+}, [user]);
 
-//     if (!data || data === "null" || data === "undefined") {
-//       await clearOldTransaction();
-//       return navigation.navigate("AddTransactionScreen");
-//     }
-//     let parsed = null;
-//     try {
-//       parsed = typeof data === "string" ? JSON.parse(data) : data;
-//     } catch (err) {
-//       console.log("JSON Parse failed -> clearing storage");
-//       await clearOldTransaction();
-//       return navigation.navigate("AddTransactionScreen");
-//     }
-//     const storedDate = parsed?.date;
-//     const storedId = parsed?.transactionId;
 
-//     console.log("Stored date:", storedDate, "Today:", today);
+  // const goToTransaction = async () => {
+  //   try {
 
-//     if (storedDate === today && storedId) {
-//       return navigation.navigate("ProcessTransactionScreen", {
-//         transactionId: storedId,
-//       });
-//     }
+  //     const today = new Date().toLocaleString("en-CA", { timeZone: "Asia/Kolkata" }).split(",")[0];
 
-//     await clearOldTransaction();
-//     navigation.navigate("AddTransactionScreen");
+  //     const data = await getTodayTransaction();
 
-//   } catch (error) {
-//     console.log("goToTransaction Error:", error);
-//     navigation.navigate("AddTransactionScreen");
-//   }
-// };
+  //     if (!data || data === "null" || data === "undefined") {
+  //       await clearOldTransaction();
+  //       return navigation.navigate("AddTransactionScreen");
+  //     }
+  //     let parsed = null;
+  //     try {
+  //       parsed = typeof data === "string" ? JSON.parse(data) : data;
+  //     } catch (err) {
+  //       console.log("JSON Parse failed -> clearing storage");
+  //       await clearOldTransaction();
+  //       return navigation.navigate("AddTransactionScreen");
+  //     }
+  //     const storedDate = parsed?.date;
+  //     const storedId = parsed?.transactionId;
 
+  //     console.log("Stored date:", storedDate, "Today:", today);
+
+  //     if (storedDate === today && storedId) {
+  //       return navigation.navigate("ProcessTransactionScreen", {
+  //         transactionId: storedId,
+  //       });
+  //     }
+
+  //     await clearOldTransaction();
+  //     navigation.navigate("AddTransactionScreen");
+
+  //   } catch (error) {
+  //     console.log("goToTransaction Error:", error);
+  //     navigation.navigate("AddTransactionScreen");
+  //   }
+  // };
 
   const roleBoxes = {
     admin: [
@@ -93,7 +113,7 @@ export default function UserScreen({ navigation }) {
         screen: "DataAnalysisScreen",
       },
     ],
-    
+
     manager: [
       {
         title: "Process Transaction",
@@ -130,7 +150,7 @@ export default function UserScreen({ navigation }) {
         </TouchableOpacity>
 
         <View style={styles.userContainer}>
-          <MaterialIcons name="account-circle" size={45} color="#fff" />
+          {/* <MaterialIcons name="account-circle" size={45} color="#fff" /> */}
           <Text style={styles.welcomeText}>
             Welcome, {user?.name || "User"}
           </Text>
