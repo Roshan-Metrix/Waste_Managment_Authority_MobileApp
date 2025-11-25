@@ -218,6 +218,56 @@ export const TodaysTransactionController = async (req, res) => {
   }
 };
 
+export const StoreTotalTransactionController = async (req, res) => {
+  const storeId = req.params.storeId;
+
+  try {
+    const transactions = await transactionModel.find({ "store.storeId": storeId });
+    
+    if(!transactions){
+      return res.status(400).json({
+        success: false,
+        message: "Store Id not present",
+      })
+    }
+    const formattedTransactions = transactions.map((txn) => ({
+      transactionId: txn.transactionId,
+      managerName: txn.managerName,
+      vendorName: txn.vendorName,
+      calibration: {
+        image: txn.calibration?.image || null,
+      },
+      store: {
+        storeId: txn.store?.storeId || null,
+        storeName: txn.store?.storeName || null,
+        storeLocation: txn.store?.storeLocation || null,
+      },
+      items: txn.items.map((item) => ({
+        itemNo: item.itemNo,
+        materialType: item.materialType,
+        image: item.image,
+        weight: item.weight,
+        weightSource: item.weightSource,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+      })),
+      createdAt: txn.createdAt,
+      updatedAt: txn.updatedAt,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      message: "ALl Store transactions fetched successfully",
+      transactions: formattedTransactions,
+    });
+  } catch (error) {
+    console.log("Error in StoreTotalTransactionController:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
 // Not is use , but kept for reference or future use
 // All Today's Transactions Controller
 export const AllStoreTodaysTransactionsController = async (req, res) => {
