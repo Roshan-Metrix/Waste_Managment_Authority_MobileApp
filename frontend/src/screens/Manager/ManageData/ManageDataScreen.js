@@ -70,7 +70,7 @@ export default function ManageDataScreen({ navigation }) {
           {/* Export Data Card/Button */}
           <TouchableOpacity
             style={[styles.actionCard, { backgroundColor: "#22c55e" }]}
-            onPress={() => handleAction("VendorSignatureScreen")}
+            onPress={() => handleAction("ShowAllTransaction")}
             activeOpacity={0.8}
           >
             <View

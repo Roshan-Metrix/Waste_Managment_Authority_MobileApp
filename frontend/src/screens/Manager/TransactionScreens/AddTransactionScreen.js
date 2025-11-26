@@ -59,7 +59,7 @@ export default function AddTransactionScreen({ navigation }) {
 
   useEffect(() => {
     fetchProfile();
-    clearOldTransaction();
+    // clearOldTransaction();
   }, []);
 
   //   const handleProcess = async () => {
@@ -136,8 +136,11 @@ export default function AddTransactionScreen({ navigation }) {
         setSendingLoading(false);
         return Alert.alert("Error", "Failed to create transaction.");
       }
-
-      // SAVE TO ASYNC STORAGE
+      
+      // Clear old transaction
+      await clearOldTransaction();
+      
+      // SAVE New transaction TO ASYNC STORAGE
       await saveTodayTransaction(transactionId);
 
       setSendingLoading(false);
@@ -145,7 +148,7 @@ export default function AddTransactionScreen({ navigation }) {
       navigation.navigate("ProcessTransactionScreen");
     } catch (error) {
       console.log("Transaction Error:", error.response?.data || error.message);
-      Alert.alert("Error", "Something went wrong while creating transaction.");
+      Alert.alert("Transaction Error:",error.response?.data.message);
       setSendingLoading(false);
       return navigation.navigate("UserScreen");
     }

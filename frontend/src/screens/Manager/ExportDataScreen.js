@@ -10,9 +10,9 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-import * as Print from 'expo-print'; 
-import * as Sharing from 'expo-sharing'; 
-import * as FileSystem from 'expo-file-system';
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
+import * as FileSystem from "expo-file-system";
 
 // Converts ISO string to IST formatted date and time for file content.
 const formatISTDateTime = (isoString) => {
@@ -38,7 +38,8 @@ const formatISTDateTime = (isoString) => {
 };
 
 const generateCSV = (data) => {
-  const headers = [
+  // --- Detailed Items Section ---
+  const detailHeaders = [
     "SN",
     "Transaction ID",
     "Store Name",
@@ -49,7 +50,8 @@ const generateCSV = (data) => {
     "Date (IST)",
     "Time (IST)",
   ];
-  let csvString = headers.join(",") + "\n";
+  let csvString = "Detailed Transaction Items\n";
+  csvString += detailHeaders.join(",") + "\n";
 
   data.items.forEach((item) => {
     const { date, time } = formatISTDateTime(item.createdAt);
@@ -68,6 +70,29 @@ const generateCSV = (data) => {
     csvString += row.join(",") + "\n";
   });
 
+  // --- Grouped Summary Section ---
+  csvString += "\nMaterial Type Summary\n";
+  const summaryHeaders = [
+    "No.",
+    "Material Type",
+    "Item Count",
+    "Total Weight (kg)",
+  ];
+  csvString += summaryHeaders.join(",") + "\n";
+
+  data.itemSummary.forEach((summary, index) => {
+    const summaryRow = [
+      index + 1,
+      `"${summary.materialType}"`,
+      summary.itemCount,
+      summary.totalWeight,
+    ];
+    csvString += summaryRow.join(",") + "\n";
+  });
+
+  // --- Grand Total ---
+  csvString += "\nGrand Total Weight (kg)," + data.grandTotalWeight + "\n";
+
   return {
     data: csvString,
     fileName: `${data.transactionId}_Data.csv`,
@@ -76,6 +101,33 @@ const generateCSV = (data) => {
 };
 
 const generatePDF = (data) => {
+  // Generate HTML for the Material Summary section
+  const summaryHtml =
+    data.itemSummary.length > 0
+      ? `
+            <h3 style="font-size: 14px; margin-top: 25px; margin-bottom: 10px; color: #1e40af;">Material Type Summary</h3>
+            <div style="border: 1px solid #ddd; padding: 10px; background-color: #f9f9f9;">
+                ${data.itemSummary
+                  .map(
+                    (summary, index) => `
+                    <div style="font-size: 12px; margin-bottom: 5px; line-height: 16px;">
+                        <span style="font-weight: bold; margin-right: 5px;">${
+                          index + 1
+                        }. ${summary.materialType}:</span>
+                        <span style="color: #333;">${summary.itemCount} item${
+                      summary.itemCount !== 1 ? "s" : ""
+                    }</span>
+                        <span style="font-weight: bold; color: #b91c1c;">(Total Weight: ${
+                          summary.totalWeight
+                        } kg)</span>
+                    </div>
+                `
+                  )
+                  .join("")}
+            </div>
+          `
+      : "";
+
   const htmlContent = `
         <html>
             <head>
@@ -102,6 +154,7 @@ const generatePDF = (data) => {
                     } | Vendor: ${data.vendorName}</div>
                 </div>
                 
+                <h3 style="font-size: 14px; margin-top: 20px; margin-bottom: 10px;">Detailed Transaction Items</h3>
                 <table>
                     <thead>
                         <tr>
@@ -142,8 +195,8 @@ const generatePDF = (data) => {
                         </tr>
                     </tbody>
                 </table>
-
-                <div class="info" style="margin-top:20px;">Grand Total (in words): _______________________________________</div>
+                
+                ${summaryHtml}
 
                 <div class="signature-area">
                     <div class="signature-box">
@@ -204,7 +257,6 @@ export default function ExportDataScreen({ navigation, route }) {
   }
 
   const handleExport = async (type) => {
-
     if (isExporting) return;
     setIsExporting(true);
 
@@ -214,7 +266,6 @@ export default function ExportDataScreen({ navigation, route }) {
       if (type === "PDF") {
         result = generatePDF(transactionData);
       } else if (type === "CSV" || type === "Excel") {
-        
         result = generateCSV(transactionData);
       } else {
         Alert.alert("Error", "Invalid export type selected.");
@@ -232,9 +283,9 @@ export default function ExportDataScreen({ navigation, route }) {
       } else {
         const fileUri = FileSystem.cacheDirectory + result.fileName;
 
-       await FileSystem.writeAsStringAsync(fileUri, result.data, {
-    encoding: FileSystem.EncodingType.UTF8, 
-});
+        await FileSystem.writeAsStringAsync(fileUri, result.data, {
+          encoding: FileSystem.EncodingType.UTF8,
+        });
 
         if (!(await Sharing.isAvailableAsync())) {
           Alert.alert("Error", "Sharing is not available on this device.");
@@ -309,9 +360,33 @@ export default function ExportDataScreen({ navigation, route }) {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.sectionTitle}>
-          Choose Export Format
-          (ID: {transactionData.transactionId})
+          Transaction Details (ID: {transactionData.transactionId})
         </Text>
+
+        {/* New Section: Display Grouped Summary */}
+        <View style={styles.summaryDisplayBox}>
+          <Text style={styles.summaryTitle}>Material Totals:</Text>
+          {transactionData.itemSummary.map((summary, index) => (
+            <View key={index} style={styles.summaryRow}>
+              <Text style={styles.summaryNo}>{index + 1}.</Text>
+              <Text style={styles.summaryMaterial}>
+                {summary.materialType}:
+              </Text>
+              <Text style={styles.summaryWeight}>
+                {summary.itemCount} item{summary.itemCount !== 1 ? "s" : ""} (
+                {summary.totalWeight} kg)
+              </Text>
+            </View>
+          ))}
+          <View style={styles.summaryTotalRow}>
+            <Text style={styles.summaryTotalText}>Grand Total Weight:</Text>
+            <Text style={styles.summaryTotalValue}>
+              {transactionData.grandTotalWeight} kg
+            </Text>
+          </View>
+        </View>
+
+        <Text style={styles.sectionTitle}>Choose Export Format</Text>
 
         <ExportOption
           type="PDF"
@@ -400,6 +475,71 @@ const styles = StyleSheet.create({
     marginTop: 25,
     marginBottom: 15,
   },
+  // --- New Summary Styles ---
+  summaryDisplayBox: {
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e0f2fe",
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  summaryTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1e40af",
+    marginBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+    paddingBottom: 5,
+  },
+  summaryRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    marginBottom: 4,
+  },
+  summaryNo: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#4b5563",
+    marginRight: 5,
+  },
+  summaryMaterial: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1f2937",
+    flex: 1,
+  },
+  summaryWeight: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#b91c1c",
+  },
+  summaryTotalRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 10,
+    paddingTop: 8,
+    borderTopWidth: 2,
+    borderTopColor: "#1e40af",
+  },
+  summaryTotalText: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#1e40af",
+  },
+  summaryTotalValue: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#dc2626",
+  },
+  // --- End New Summary Styles ---
   exportBox: {
     flexDirection: "row",
     backgroundColor: "#fff",

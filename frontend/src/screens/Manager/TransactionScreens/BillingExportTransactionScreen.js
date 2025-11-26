@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -12,10 +12,11 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
 import api from "../../../api/api";
-import { useFocusEffect } from "@react-navigation/native";
-import colors from '../../../colors'
+import { useFocusEffect, useRoute } from "@react-navigation/native";
+import colors from "../../../colors";
 
 export default function BillingExportTransactionScreen({ navigation }) {
+  const route = useRoute();
   const [store, setStore] = useState(null);
   const [profile, setProfile] = useState(null);
   const [transactionData, setTransactionData] = useState(null);
@@ -25,29 +26,29 @@ export default function BillingExportTransactionScreen({ navigation }) {
   const [managerSignature, setManagerSignature] = useState(null);
   const [vendorSignature, setVendorSignature] = useState(null);
 
-  //   Converts ISO string to IST formatted date and time.
+  // Converts ISO string to IST formatted date and time.
   const formatISTDateTime = (isoString) => {
     if (!isoString) return { date: "N/A", time: "N/A" };
     try {
       const date = new Date(isoString);
-      
+
       const optionsDate = {
-        year: 'numeric',
-        month: 'short',
-        day: '2-digit',
-        timeZone: 'Asia/Kolkata', 
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        timeZone: "Asia/Kolkata",
       };
-      
+
       const optionsTime = {
-        hour: 'numeric',
-        minute: '2-digit',
-        second: '2-digit',
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
         hour12: true,
-        timeZone: 'Asia/Kolkata', 
+        timeZone: "Asia/Kolkata",
       };
-      
-      const formattedDate = date.toLocaleDateString('en-IN', optionsDate);
-      const formattedTime = date.toLocaleTimeString('en-IN', optionsTime);
+
+      const formattedDate = date.toLocaleDateString("en-IN", optionsDate);
+      const formattedTime = date.toLocaleTimeString("en-IN", optionsTime);
 
       return { date: formattedDate, time: formattedTime };
     } catch (e) {
@@ -56,7 +57,7 @@ export default function BillingExportTransactionScreen({ navigation }) {
     }
   };
 
-  //  * Helper to show image URI for item.
+  // * Helper to show image URI for item.
   const getItemImageUri = (imageField) => {
     if (!imageField) return null;
     if (typeof imageField !== "string") return null;
@@ -72,10 +73,12 @@ export default function BillingExportTransactionScreen({ navigation }) {
 
   // Calculates the grand total weight of all items.
   const calculateGrandTotal = (items) => {
-    return items.reduce((total, item) => {
-      const weight = parseFloat(item.weight) || 0;
-      return total + weight;
-    }, 0).toFixed(2); 
+    return items
+      .reduce((total, item) => {
+        const weight = parseFloat(item.weight) || 0;
+        return total + weight;
+      }, 0)
+      .toFixed(2);
   };
 
   // --- DATA FETCHING ---
@@ -97,14 +100,25 @@ export default function BillingExportTransactionScreen({ navigation }) {
   // Fetch transaction data and items
   const fetchTransactionData = async () => {
     setLoading(true);
+
     try {
-      const stored = await AsyncStorage.getItem("todayTransaction");
-      const parsed = JSON.parse(stored);
-      const transactionId = parsed?.transactionId;
+      let transactionId;
+      if (route.params?.transactionId) {
+        transactionId = route.params.transactionId;
+        console.log("Using transaction ID from route params:", transactionId);
+      } else {
+        const stored = await AsyncStorage.getItem("todayTransaction");
+        const parsed = JSON.parse(stored);
+        transactionId = parsed?.transactionId;
+        console.log("Using transaction ID from AsyncStorage:", transactionId);
+      }
 
       if (!transactionId) {
         setLoading(false);
-        Alert.alert("No Transaction", "No active transaction ID found for billing.");
+        Alert.alert(
+          "No Transaction",
+          "No active transaction ID found for billing."
+        );
         return;
       }
 
@@ -115,13 +129,16 @@ export default function BillingExportTransactionScreen({ navigation }) {
       if (res.data?.success && res.data?.transactions?.[0]) {
         const transaction = res.data.transactions[0];
         setTransactionData(transaction);
-        
+
         // Reverse the items list so the newest item appears first (SN 1)
-        const reversedItems = [...(transaction.items || [])].reverse(); 
-        setItemsList(reversedItems); 
+        const reversedItems = [...(transaction.items || [])].reverse();
+        setItemsList(reversedItems);
       }
     } catch (e) {
-      console.log("Fetch transaction data error:", e?.response?.data || e.message);
+      console.log(
+        "Fetch transaction data error:",
+        e?.response?.data || e.message
+      );
       Alert.alert("Error", "Failed to fetch transaction data.");
     } finally {
       setLoading(false);
@@ -137,15 +154,39 @@ export default function BillingExportTransactionScreen({ navigation }) {
         if (managerSig) setManagerSignature(managerSig);
         if (vendorSig) setVendorSignature(vendorSig);
       };
-      
+
       loadSignatures();
       fetchTransactionData();
-    },[])
+    }, [])
   );
 
-
   const grandTotalWeight = calculateGrandTotal(itemsList);
-  
+
+  // * NEW LOGIC: Group items by material type for summary
+  const groupedItemsSummary = useMemo(() => {
+    const summary = itemsList.reduce((acc, item) => {
+      const type = item.materialType || "Unknown Material";
+      const weight = parseFloat(item.weight) || 0;
+
+      if (!acc[type]) {
+        acc[type] = { count: 0, totalWeight: 0 };
+      }
+
+      acc[type].count += 1;
+      acc[type].totalWeight += weight;
+
+      return acc;
+    }, {});
+
+    // Convert to an array for easy mapping/rendering
+    return Object.keys(summary).map((type) => ({
+      materialType: type,
+      itemCount: summary[type].count,
+      totalWeight: summary[type].totalWeight.toFixed(2),
+    }));
+  }, [itemsList]);
+  // * END NEW LOGIC
+
   if (loading) {
     return (
       <View style={styles.centerScreen}>
@@ -156,36 +197,36 @@ export default function BillingExportTransactionScreen({ navigation }) {
   }
 
   // Helper to get today's IST date for the header
-  const todayISTDate = new Date().toLocaleDateString('en-IN', {
-    year: 'numeric',
-    month: 'short',
-    day: '2-digit',
-    timeZone: 'Asia/Kolkata',
+  const todayISTDate = new Date().toLocaleDateString("en-IN", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    timeZone: "Asia/Kolkata",
   });
 
   // Function to prepare and pass data to export screen
   const navigateToExport = () => {
-      const dataToExport = {
-          transactionId: transactionData?.transactionId,
-          storeName: store?.name || "Store N/A",
-          storeLocation: store?.storeLocation || "Location N/A",
-          managerEmail: profile?.email || "Manager N/A",
-          vendorName: transactionData?.vendorName || "Vendor N/A",
-          grandTotalWeight: grandTotalWeight,
-          billDate: todayISTDate, // Use the formatted header date
-          // Map items to include serial number and clean weight data
-          items: itemsList.map((item, index) => ({
-              sn: index + 1, // Serial Number (1, 2, 3...)
-              materialType: item.materialType,
-              weight: parseFloat(item.weight).toFixed(2),
-              weightSource: item.weightSource,
-              createdAt: item.createdAt, // ISO string for accurate time conversion on export screen
-          })),
-          managerSignature: managerSignature,
-          vendorSignature: vendorSignature,
-      };
+    const dataToExport = {
+      transactionId: transactionData?.transactionId,
+      storeName: store?.name || "Store N/A",
+      storeLocation: store?.storeLocation || "Location N/A",
+      managerEmail: profile?.email || "Manager N/A",
+      vendorName: transactionData?.vendorName || "Vendor N/A",
+      grandTotalWeight: grandTotalWeight,
+      billDate: todayISTDate,
+      items: itemsList.map((item, index) => ({
+        sn: index + 1,
+        materialType: item.materialType,
+        weight: parseFloat(item.weight).toFixed(2),
+        weightSource: item.weightSource,
+        createdAt: item.createdAt,
+      })),
+      itemSummary: groupedItemsSummary,
+      managerSignature: managerSignature,
+      vendorSignature: vendorSignature,
+    };
 
-      navigation.navigate("ExportDataScreen", { transactionData: dataToExport });
+    navigation.navigate("ExportDataScreen", { transactionData: dataToExport });
   };
 
   return (
@@ -199,7 +240,11 @@ export default function BillingExportTransactionScreen({ navigation }) {
         <Text style={styles.headerTitle}>Billing Transaction</Text>
 
         <TouchableOpacity onPress={navigateToExport}>
-          <MaterialIcons name="file-download" size={26} color={colors.primary} />
+          <MaterialIcons
+            name="file-download"
+            size={26}
+            color={colors.primary}
+          />
         </TouchableOpacity>
       </View>
 
@@ -219,85 +264,161 @@ export default function BillingExportTransactionScreen({ navigation }) {
               <Text style={styles.labelBold}>Date :</Text> {todayISTDate}
             </Text>
             <Text style={styles.label}>
-              <Text style={styles.labelBold}>Transaction ID :</Text> {transactionData?.transactionId || "N/A"}
+              <Text style={styles.labelBold}>Transaction ID :</Text>{" "}
+              {transactionData?.transactionId || "N/A"}
             </Text>
           </View>
           <View style={styles.rowBetween}>
-             <Text style={styles.label}>
-              <Text style={styles.labelBold}>Manager :</Text> {profile?.email || "Loading..."}
+            <Text style={styles.label}>
+              <Text style={styles.labelBold}>Manager :</Text>{" "}
+              {profile?.email || "Loading..."}
             </Text>
-             <Text style={styles.label}>
-              <Text style={styles.labelBold}>Vendor :</Text> {transactionData?.vendorName || "N/A"}
+            <Text style={styles.label}>
+              <Text style={styles.labelBold}>Vendor :</Text>{" "}
+              {transactionData?.vendorName || "N/A"}
             </Text>
           </View>
-         
+
           <Text style={styles.subHeading}>Transaction Items</Text>
 
           {/* TABLE */}
           <View style={styles.table}>
             <View style={styles.tableRowHeader}>
               <Text style={[styles.tableHeaderText, { flex: 0.5 }]}>SN</Text>
-              <Text style={[styles.tableHeaderText, { flex: 1 }]}>Material</Text>
-              <Text style={[styles.tableHeaderText, { flex: 0.9, textAlign: 'center' }]}>Weight (kg)</Text>
-              <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'center' }]}>Time & Source</Text>
+              <Text style={[styles.tableHeaderText, { flex: 1 }]}>
+                Material
+              </Text>
+              <Text
+                style={[
+                  styles.tableHeaderText,
+                  { flex: 0.9, textAlign: "center" },
+                ]}
+              >
+                Weight (kg)
+              </Text>
+              <Text
+                style={[
+                  styles.tableHeaderText,
+                  { flex: 1, textAlign: "center" },
+                ]}
+              >
+                Time & Source
+              </Text>
             </View>
 
             {itemsList.length === 0 ? (
-                <Text style={styles.noItemsText}>No items added to this transaction.</Text>
+              <Text style={styles.noItemsText}>
+                No items added to this transaction.
+              </Text>
             ) : (
-                itemsList.map((item, index) => {
-                  const imgUri = getItemImageUri(item.image);
-                  const { date, time } = formatISTDateTime(item.createdAt);
-                  const serialNumber = index + 1; 
-                  const weightSourceTag = item.weightSource === "system" ? "Sys" : "Man";
-                  const weightSourceColor = item.weightSource === "system" ? '#10b981' : '#f59e0b';
-                  const weightSourceBg = item.weightSource === "system" ? '#d1fae5' : '#fef3c7';
+              itemsList.map((item, index) => {
+                const imgUri = getItemImageUri(item.image);
+                const { date, time } = formatISTDateTime(item.createdAt);
+                const serialNumber = index + 1;
+                const weightSourceTag =
+                  item.weightSource === "system" ? "Sys" : "Man";
+                const weightSourceColor =
+                  item.weightSource === "system" ? "#10b981" : "#f59e0b";
+                const weightSourceBg =
+                  item.weightSource === "system" ? "#d1fae5" : "#fef3c7";
 
-
-                  return (
-                    <View key={item._id || index} style={styles.tableRow}>
-                      <Text style={[styles.tableData, { flex: 0.5 }]}>{serialNumber}</Text>
-                      <View style={[styles.itemDetailWrapper, { flex: 3 }]}>
-                         <Image
-                            source={imgUri ? { uri: imgUri } : require('../../../../assets/icon.png')}
-                            style={styles.itemImage}
-                          />
-                          <Text style={styles.materialText}>{item.materialType}</Text>
-                      </View>
-                      <Text style={[styles.tableData, { flex: 1.5, fontWeight: '700', textAlign: 'center' }]}>
-                        {parseFloat(item.weight).toFixed(2)}
+                return (
+                  <View key={item._id || index} style={styles.tableRow}>
+                    <Text style={[styles.tableData, { flex: 0.5 }]}>
+                      {serialNumber}
+                    </Text>
+                    <View style={[styles.itemDetailWrapper, { flex: 3 }]}>
+                      <Image
+                        source={
+                          imgUri
+                            ? { uri: imgUri }
+                            : require("../../../../assets/icon.png")
+                        }
+                        style={styles.itemImage}
+                      />
+                      <Text style={styles.materialText}>
+                        {item.materialType}
                       </Text>
-                      <View style={[styles.dateTimeSourceWrapper, { flex: 2.5 }]}>
-                        <Text style={styles.dateTimeText}>{date}</Text>
-                        <View style={styles.dateTimeRow}>
-                            <Text style={styles.dateTimeText}>{time}</Text>
-                            <View style={[styles.sourceTag, { backgroundColor: weightSourceBg }]}>
-                                <Text style={[styles.sourceText, { color: weightSourceColor }]}>
-                                    {weightSourceTag}
-                                </Text>
-                            </View>
+                    </View>
+                    <Text
+                      style={[
+                        styles.tableData,
+                        { flex: 1.5, fontWeight: "700", textAlign: "center" },
+                      ]}
+                    >
+                      {parseFloat(item.weight).toFixed(2)}
+                    </Text>
+                    <View style={[styles.dateTimeSourceWrapper, { flex: 2.5 }]}>
+                      <Text style={styles.dateTimeText}>{date}</Text>
+                      <View style={styles.dateTimeRow}>
+                        <Text style={styles.dateTimeText}>{time}</Text>
+                        <View
+                          style={[
+                            styles.sourceTag,
+                            { backgroundColor: weightSourceBg },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.sourceText,
+                              { color: weightSourceColor },
+                            ]}
+                          >
+                            {weightSourceTag}
+                          </Text>
                         </View>
                       </View>
                     </View>
-                  );
-                })
+                  </View>
+                );
+              })
             )}
 
             {/* Grand Total Row */}
             <View style={styles.tableRowTotal}>
-              <Text style={[styles.tableTotalText, { flex: 7.5, textAlign: 'right', paddingRight: 10 }]}>
+              <Text
+                style={[
+                  styles.tableTotalText,
+                  { flex: 7.5, textAlign: "right", paddingRight: 10 },
+                ]}
+              >
                 Grand Total Weight:
               </Text>
-              <Text style={[styles.tableTotalValue, { flex: 2.5, textAlign: 'center' }]}>
+              <Text
+                style={[
+                  styles.tableTotalValue,
+                  { flex: 2.5, textAlign: "center" },
+                ]}
+              >
                 {grandTotalWeight} kg
               </Text>
             </View>
           </View>
+          {/* END TABLE */}
+
+          {/* * NEW DISPLAY: Summary Section */}
+          <Text style={styles.subHeading}>Material Type Summary</Text>
+          <View style={styles.summaryContainer}>
+            {groupedItemsSummary.map((summary, index) => (
+              <View key={index} style={styles.summaryRow}>
+                <Text style={styles.summaryMaterial}>
+                  {summary.materialType} :
+                </Text>
+                <Text style={styles.summaryItems}>
+                  {summary.itemCount} item{summary.itemCount !== 1 ? "s" : ""}
+                </Text>
+                <Text style={styles.summaryWeight}>
+                  (Total Weight: {summary.totalWeight} kg)
+                </Text>
+              </View>
+            ))}
+          </View>
+          {/* * END NEW DISPLAY */}
 
           {/* Total Words - Placeholder */}
-          <Text style={styles.totalWords}>
+         {/* <Text style={styles.totalWords}>
             Grand Total (in words): _______________________________________
-          </Text>
+          </Text> */}
 
           <View style={styles.signatureRow}>
             {/* MANAGER SIGNATURE */}
@@ -333,11 +454,13 @@ export default function BillingExportTransactionScreen({ navigation }) {
         </View>
 
         {/* Export */}
-        <TouchableOpacity
-          style={styles.exportBtn}
-          onPress={navigateToExport}
-        >
-          <MaterialIcons name="file-download" size={20} color="#fff" style={{ marginRight: 8 }} />
+        <TouchableOpacity style={styles.exportBtn} onPress={navigateToExport}>
+          <MaterialIcons
+            name="file-download"
+            size={20}
+            color="#fff"
+            style={{ marginRight: 8 }}
+          />
           <Text style={styles.exportText}>Export Bill</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -349,9 +472,9 @@ export default function BillingExportTransactionScreen({ navigation }) {
 const styles = StyleSheet.create({
   centerScreen: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
   },
   header: {
     flexDirection: "row",
@@ -369,12 +492,17 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 16,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
   },
-  storeName: { fontSize: 24, fontWeight: "800", textAlign: "center", color: '#1e40af' },
+  storeName: {
+    fontSize: 24,
+    fontWeight: "800",
+    textAlign: "center",
+    color: "#1e40af",
+  },
   storeLocation: {
     fontSize: 14,
     textAlign: "center",
@@ -386,29 +514,35 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginTop: 20,
     marginBottom: 10,
-    color: '#374151',
+    color: "#374151",
   },
-  rowBetween: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between',
-    flexWrap: 'wrap', 
+  rowBetween: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    flexWrap: "wrap",
     marginVertical: 4,
-    paddingHorizontal: 5
+    paddingHorizontal: 5,
   },
-  label: { fontSize: 14, color: "#333", paddingTop: 5, width: '50%' },
-  labelBold: { fontWeight: '700' },
+  label: { fontSize: 14, color: "#333", paddingTop: 5, width: "50%" },
+  labelBold: { fontWeight: "700" },
 
   table: { borderWidth: 1, borderColor: "#ccc", marginTop: 5 },
 
   tableRowHeader: {
     flexDirection: "row",
-    backgroundColor: "#eef2ff", 
+    backgroundColor: "#eef2ff",
     paddingVertical: 10,
     paddingHorizontal: 5,
     borderBottomWidth: 1,
     borderColor: "#ccc",
   },
-  tableHeaderText: { flex: 1, fontWeight: "800", fontSize: 13, color: '#1e40af', textAlign: 'left' },
+  tableHeaderText: {
+    flex: 1,
+    fontWeight: "800",
+    fontSize: 13,
+    color: "#1e40af",
+    textAlign: "left",
+  },
 
   tableRow: {
     flexDirection: "row",
@@ -418,42 +552,42 @@ const styles = StyleSheet.create({
     borderColor: "#eee",
     alignItems: "center",
   },
-  tableData: { flex: 1, fontSize: 13, color: '#1f2937' },
-  
+  tableData: { flex: 1, fontSize: 13, color: "#1f2937" },
+
   itemDetailWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingLeft: 5,
   },
-  itemImage: { 
-    width: 30, 
-    height: 30, 
-    borderRadius: 4, 
+  itemImage: {
+    width: 30,
+    height: 30,
+    borderRadius: 4,
     marginRight: 8,
-    backgroundColor: '#f3f4f6' 
+    backgroundColor: "#f3f4f6",
   },
   materialText: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: "500",
     flexShrink: 1,
   },
-  
+
   dateTimeSourceWrapper: {
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'flex-start',
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "flex-start",
     paddingLeft: 5,
   },
   dateTimeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
     marginTop: 2,
   },
   dateTimeText: {
     fontSize: 11,
-    color: '#4b5563',
+    color: "#4b5563",
   },
   sourceTag: {
     paddingVertical: 2,
@@ -463,7 +597,7 @@ const styles = StyleSheet.create({
   },
   sourceText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 
   tableRowTotal: {
@@ -471,33 +605,64 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 5,
     borderTopWidth: 2,
-    borderColor: "#1e40af", 
-    backgroundColor: '#e0f2fe', 
+    borderColor: "#1e40af",
+    backgroundColor: "#e0f2fe",
     alignItems: "center",
   },
-  tableTotalText: { fontWeight: "800", fontSize: 14, color: '#1e40af' },
-  tableTotalValue: { fontWeight: "800", fontSize: 15, color: '#b91c1c' },
-  
+  tableTotalText: { fontWeight: "800", fontSize: 14, color: "#1e40af" },
+  tableTotalValue: { fontWeight: "800", fontSize: 15, color: "#b91c1c" },
+
   noItemsText: {
-    textAlign: 'center',
+    textAlign: "center",
     padding: 15,
-    color: '#6b7280',
-    fontStyle: 'italic',
+    color: "#6b7280",
+    fontStyle: "italic",
   },
 
-  totalWords: { 
-    marginTop: 15, 
-    fontSize: 13, 
+  summaryContainer: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  summaryRow: {
+    flexDirection: "row",
+    marginBottom: 4,
+    flexWrap: "wrap",
+  },
+  summaryMaterial: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.primary, 
+    marginRight: 5,
+  },
+  summaryItems: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#374151",
+    marginRight: 10,
+  },
+  summaryWeight: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#b91c1c",
+  },
+
+  totalWords: {
+    marginTop: 15,
+    fontSize: 13,
     color: "#333",
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
     paddingBottom: 5,
   },
 
   signatureRow: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginTop: 30,
+    marginTop: 20,
     paddingHorizontal: 10,
   },
 
@@ -505,23 +670,23 @@ const styles = StyleSheet.create({
     width: 100,
     height: 60,
     borderBottomWidth: 1,
-    borderColor: '#aaa',
-    backgroundColor: '#f3f4f6',
-    resizeMode: 'contain',
+    borderColor: "#aaa",
+    backgroundColor: "#f3f4f6",
+    resizeMode: "contain",
     marginTop: 5,
   },
   signaturePlaceholder: {
     width: 100,
     height: 60,
     borderBottomWidth: 1,
-    borderColor: '#aaa',
+    borderColor: "#aaa",
     marginTop: 5,
   },
-  signatureLabel: { 
-    marginTop: 5, 
-    fontSize: 12, 
+  signatureLabel: {
+    marginTop: 5,
+    fontSize: 12,
     color: "#4b5563",
-    fontWeight: '600'
+    fontWeight: "600",
   },
 
   disclaimer: {
@@ -529,7 +694,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: "center",
     color: "#777",
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
 
   exportBtn: {
