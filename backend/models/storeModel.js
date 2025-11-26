@@ -39,7 +39,7 @@ const storeSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      default: "manager",
+      default: "store",
     },
     resetOtp:{
         type:String,

@@ -281,10 +281,23 @@ export const getLoggedInUserDetails = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const user = await userModel.findById(userId).select("-password -__v");
+    let user = null;
+
+    // Check Admin
+    user = await adminModel.findById(userId).select("-password -__v");
+
+    // Check Store
+    if (!user) {
+      user = await storeModel.findById(userId).select("-password -__v");;
+    }
+
+    // Check Manager
+    if (!user) {
+      user = await managerModel.findById(userId).select("-password -__v");;
+    }
 
     if (!user) {
-      return res.json({ success: false, message: "User not found" });
+      return res.json({ success: false, message: "User Not Found" });
     }
 
     return res.json({
