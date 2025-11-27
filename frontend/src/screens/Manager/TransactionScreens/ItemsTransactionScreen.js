@@ -102,7 +102,7 @@ export default function ItemsTransactionScreen({ navigation }) {
       setLoading(true);
 
       // OCR
-      // NOTE: runOcrOnImage and parseWeight functions must be implemented in their respective files
+    
       const ocrText = await runOcrOnImage(picture.uri); 
       const cleanWeight = parseWeight(ocrText);
 

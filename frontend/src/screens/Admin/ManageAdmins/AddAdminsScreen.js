@@ -17,6 +17,7 @@ export default function AddAdminsScreen({ navigation }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const role = "admin";
 
@@ -82,6 +83,8 @@ export default function AddAdminsScreen({ navigation }) {
     }
 
     try {
+      setLoading(true);
+
       // Verify admin credentials
       const verify = await api.post("/auth/login", {
         email: adminEmail,
@@ -89,6 +92,7 @@ export default function AddAdminsScreen({ navigation }) {
       });
 
       if (!verify.data.success) {
+        setLoading(false);
         alert("Admin verification failed!");
         return;
       }
@@ -102,13 +106,14 @@ export default function AddAdminsScreen({ navigation }) {
       });
 
       if (!registerRes.data.success) {
+        setLoading(false);
         alert(registerRes.data.message);
         return;
       }
 
       alert("Admin Created Successfully!");
 
-      // Reset All
+      // Reset All Inputs
       setName("");
       setEmail("");
       setPassword(generatePassword());
@@ -117,6 +122,8 @@ export default function AddAdminsScreen({ navigation }) {
       setShowPopup(false);
     } catch (err) {
       alert("Error: " + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -218,8 +225,17 @@ export default function AddAdminsScreen({ navigation }) {
             <TouchableOpacity
               style={styles.submitButton}
               onPress={handleConfirm}
+              disabled={loading}
             >
-              <Text style={styles.submitText}>Confirm & Create Admin</Text>
+              {loading ? (
+                <View style={{ alignItems: "center" }}>
+                  <Text style={{ color: "#fff", fontSize: 16 }}>
+                    Submitting...
+                  </Text>
+                </View>
+              ) : (
+                <Text style={styles.submitText}>Confirm & Create Admin</Text>
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity

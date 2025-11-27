@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
   Modal,
   ActivityIndicator,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
@@ -18,10 +20,12 @@ export default function AddStoreScreen({ navigation }) {
   const [name, setName] = useState("");
   const [storeLocation, setStoreLocation] = useState("");
   const [contactNumber, setContactNumber] = useState("");
-
-  const [modalVisible, setModalVisible] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
 
@@ -29,19 +33,32 @@ export default function AddStoreScreen({ navigation }) {
     const chars =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let pass = "";
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 10; i++) {
       pass += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return pass;
   };
 
+  useEffect(() => {
+    setPassword(generatePassword());
+  }, []);
+
+  const copyPassword = async () => {
+    await Clipboard.setStringAsync(password);
+  };
+
   const handleAddStore = () => {
-    if (!storeId || !name || !storeLocation || !contactNumber) {
+    if (
+      !storeId ||
+      !name ||
+      !storeLocation ||
+      !contactNumber ||
+      !email ||
+      !password
+    ) {
       alert("Please fill all fields!");
       return;
     }
-
-    setPassword(generatePassword());
     setModalVisible(true);
   };
 
@@ -56,6 +73,8 @@ export default function AddStoreScreen({ navigation }) {
         contactNumber,
         email,
         password,
+        adminEmail,
+        adminPassword,
       };
 
       const { data } = await api.post("/auth/admin/registerStore", payload);
@@ -70,122 +89,181 @@ export default function AddStoreScreen({ navigation }) {
         setContactNumber("");
         setEmail("");
         setPassword("");
+        setAdminEmail("");
+        setAdminPassword("");
       } else {
         alert(data.message || "Something went wrong");
       }
     } catch (err) {
       alert("API Error: " + err.message);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
-  };
-
-  const copyPassword = async () => {
-    await Clipboard.setStringAsync(password);
   };
 
   return (
     <View style={styles.container}>
+      {/* HEADER */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Add Store</Text>
         <View style={{ width: 26 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.iconCircle}>
-          <MaterialIcons name="store" size={60} color="#2563eb" />
-        </View>
+      {/* KEYBOARD SAFE AREA */}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.content}>
+            <View style={styles.iconCircle}>
+              <MaterialIcons name="store" size={55} color="#2563eb" />
+            </View>
 
-        <Text style={styles.subTitle}>Enter Store Details</Text>
+            <Text style={styles.subTitle}>Store Details</Text>
 
-        <View style={styles.form}>
-          <View style={styles.inputRow}>
-            <MaterialIcons name="badge" size={24} color="#2563eb" />
-            <TextInput
-              placeholder="Store ID"
-              value={storeId}
-              onChangeText={setStoreId}
-              style={styles.input}
-            />
+            <View style={styles.form}>
+              <View style={styles.inputRow}>
+                <MaterialIcons name="badge" size={22} color="#2563eb" />
+                <TextInput
+                  placeholder="Store ID"
+                  value={storeId}
+                  onChangeText={setStoreId}
+                  style={styles.input}
+                />
+              </View>
+
+              <View style={styles.inputRow}>
+                <MaterialIcons name="storefront" size={22} color="#2563eb" />
+                <TextInput
+                  placeholder="Store Name"
+                  value={name}
+                  onChangeText={setName}
+                  style={styles.input}
+                />
+              </View>
+
+              <View style={styles.inputRow}>
+                <MaterialIcons name="location-on" size={22} color="#2563eb" />
+                <TextInput
+                  placeholder="Location"
+                  value={storeLocation}
+                  onChangeText={setStoreLocation}
+                  style={styles.input}
+                />
+              </View>
+
+              <View style={styles.inputRow}>
+                <MaterialIcons name="call" size={22} color="#2563eb" />
+                <TextInput
+                  placeholder="Contact Number"
+                  value={contactNumber}
+                  onChangeText={setContactNumber}
+                  keyboardType="numeric"
+                  style={styles.input}
+                />
+              </View>
+
+              <View style={styles.inputRow}>
+                <MaterialIcons name="email" size={22} color="#2563eb" />
+                <TextInput
+                  placeholder="Store Email"
+                  value={email}
+                  onChangeText={setEmail}
+                  style={styles.input}
+                />
+              </View>
+
+              <View style={styles.passwordRow}>
+                <TouchableOpacity
+                  onPress={copyPassword}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    flex: 1,
+                  }}
+                >
+                  <MaterialIcons name="lock" size={22} color="#1d4ed8" />
+                  <TextInput
+                    placeholder="Password"
+                    value={password}
+                    onChangeText={setPassword}
+                    style={[styles.input, { marginLeft: 10 }]}
+                  />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => setPassword(generatePassword())}
+                >
+                  <MaterialIcons name="refresh" size={24} color="#2563eb" />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <TouchableOpacity style={styles.addButton} onPress={handleAddStore}>
+              <MaterialIcons name="add-business" size={20} color="#fff" />
+              <Text style={styles.addText}>Add Store</Text>
+            </TouchableOpacity>
           </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
-          <View style={styles.inputRow}>
-            <MaterialIcons name="storefront" size={24} color="#2563eb" />
-            <TextInput
-              placeholder="Store Name"
-              value={name}
-              onChangeText={setName}
-              style={styles.input}
-            />
-          </View>
-
-          <View style={styles.inputRow}>
-            <MaterialIcons name="location-on" size={24} color="#2563eb" />
-            <TextInput
-              placeholder="Location"
-              value={storeLocation}
-              onChangeText={setStoreLocation}
-              style={styles.input}
-            />
-          </View>
-
-          <View style={styles.inputRow}>
-            <MaterialIcons name="call" size={24} color="#2563eb" />
-            <TextInput
-              placeholder="Contact Number"
-              value={contactNumber}
-              onChangeText={setContactNumber}
-              keyboardType="numeric"
-              style={styles.input}
-            />
-          </View>
-        </View>
-
-        <TouchableOpacity style={styles.addButton} onPress={handleAddStore} activeOpacity={0.8}>
-          <MaterialIcons name="add-business" size={22} color="#fff" />
-          <Text style={styles.addText}>Add Store</Text>
-        </TouchableOpacity>
-      </ScrollView>
-
-      {/* Modal */}
+      {/* POPUP */}
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>Store Login Details</Text>
+            <Text style={styles.modalTitle}>Admin Verification</Text>
 
-            <View style={[styles.inputRow, { marginBottom: 15 }]}>
-              <MaterialIcons name="email" size={24} color="#2563eb" />
+            <View style={[styles.inputRow, { marginBottom: 10 }]}>
+              <MaterialIcons
+                name="admin-panel-settings"
+                size={22}
+                color="#2563eb"
+              />
               <TextInput
-                placeholder="Manager Email"
-                value={email}
-                onChangeText={setEmail}
+                placeholder="Admin Email"
+                value={adminEmail}
+                onChangeText={setAdminEmail}
                 style={styles.input}
               />
             </View>
 
-            <View style={[styles.passwordBox, { marginBottom: 20 }]}>
-              <TouchableOpacity
-                onPress={copyPassword}
-                style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
-              >
-                <MaterialIcons name="lock" size={24} color="#1d4ed8" style={{ marginRight: 6 }} />
-                <Text style={styles.passwordText}>{password}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity onPress={() => setPassword(generatePassword())}>
-                <MaterialIcons name="refresh" size={26} color="#2563eb" />
-              </TouchableOpacity>
+            <View style={[styles.inputRow, { marginBottom: 20 }]}>
+              <MaterialIcons name="lock" size={22} color="#2563eb" />
+              <TextInput
+                placeholder="Admin Password"
+                secureTextEntry
+                value={adminPassword}
+                onChangeText={setAdminPassword}
+                style={styles.input}
+              />
             </View>
 
-            <TouchableOpacity style={styles.submitButton} onPress={handleVendorSubmit}>
-              {loading ? <ActivityIndicator color="#fff" /> :
-                <Text style={styles.submitText}>Confirm & Create Store</Text>}
+            <TouchableOpacity
+              style={[styles.submitButton, { opacity: loading ? 0.5 : 1 }]}
+              disabled={loading}
+              onPress={handleVendorSubmit}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.submitText}>Verify & Create</Text>
+              )}
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setModalVisible(false)}
+            >
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
           </View>
@@ -197,131 +275,114 @@ export default function AddStoreScreen({ navigation }) {
 
 /* ---------- STYLES ---------- */
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f9fafb",
-  },
+  container: { flex: 1, backgroundColor: "#f9fafb" },
+
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 15,
+    paddingHorizontal: 18,
+    paddingTop: 45,
+    paddingBottom: 10,
     backgroundColor: "#fff",
-    elevation: 3,
+    elevation: 2,
   },
-  backButton: {
-    padding: 4,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#2563eb",
-  },
-  content: {
+
+  backButton: { padding: 4 },
+  headerTitle: { fontSize: 20, fontWeight: "700", color: "#2563eb" },
+
+  scroll: {
     paddingHorizontal: 20,
-    paddingVertical: 30,
+    paddingTop: 20,
+    paddingBottom: 40,
     alignItems: "center",
   },
+
+  content: { width: "100%", alignItems: "center" },
+
   iconCircle: {
     backgroundColor: "#e0e7ff",
-    padding: 20,
+    padding: 18,
     borderRadius: 100,
-    marginBottom: 20,
+    marginBottom: 10,
   },
-  subTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#111827",
-    marginBottom: 25,
-  },
-  form: {
-    width: "100%",
-    marginBottom: 30,
-    gap: 15,
-  },
+
+  subTitle: { fontSize: 17, fontWeight: "600", marginBottom: 12 },
+
+  form: { width: "100%", gap: 12 },
+
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: "#e5e7eb",
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderRadius: 12,
+    borderColor: "#ddd",
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderRadius: 10,
   },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    marginLeft: 10,
+
+  passwordRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderRadius: 10,
+    justifyContent: "space-between",
   },
+
+  input: { flex: 1, fontSize: 15, marginLeft: 8 },
+
   addButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#2563eb",
-    paddingVertical: 16,
-    borderRadius: 14,
+    paddingVertical: 13,
+    borderRadius: 12,
     width: "100%",
-    marginTop: 10,
+    marginTop: 18,
   },
-  addText: {
-    color: "#fff",
-    fontSize: 17,
-    fontWeight: "600",
-    marginLeft: 8,
-  },
+  addText: { color: "#fff", fontSize: 16, fontWeight: "600", marginLeft: 6 },
+
   modalOverlay: {
     flex: 1,
     justifyContent: "center",
     backgroundColor: "rgba(0,0,0,0.4)",
     padding: 20,
   },
+
   modalBox: {
     backgroundColor: "#fff",
     padding: 22,
     borderRadius: 16,
     elevation: 5,
   },
+
   modalTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "700",
-    color: "#2563eb",
-    marginBottom: 20,
     textAlign: "center",
+    marginBottom: 15,
   },
-  passwordBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#e0e7ff",
-    padding: 14,
-    borderRadius: 10,
-    justifyContent: "space-between",
-  },
-  passwordText: {
-    fontSize: 16,
-    fontWeight: "600",
-    letterSpacing: 1,
-  },
+
   submitButton: {
     backgroundColor: "#2563eb",
-    paddingVertical: 14,
-    borderRadius: 12,
-    marginBottom: 12,
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginBottom: 10,
   },
+
   submitText: {
     color: "#fff",
     textAlign: "center",
     fontWeight: "600",
-    fontSize: 16,
-  },
-  cancelButton: {
-    paddingVertical: 10,
-  },
-  cancelText: {
-    color: "#6b7280",
-    textAlign: "center",
     fontSize: 15,
   },
+
+  cancelButton: { paddingVertical: 8 },
+  cancelText: { textAlign: "center", fontSize: 14, color: "#777" },
 });

@@ -9,6 +9,7 @@ import {
   ScrollView,
   Animated,
 } from "react-native";
+import { ActivityIndicator } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import api from "../../../api/api";
@@ -18,6 +19,7 @@ export default function AddManagersScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [storeId, setStoreId] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const [showPopup, setShowPopup] = useState(false);
 
@@ -81,6 +83,8 @@ export default function AddManagersScreen({ navigation }) {
     }
 
     try {
+      setLoading(true);
+
       // Verify admin credentials
       const verify = await api.post("/auth/login", {
         email: adminEmail,
@@ -88,6 +92,7 @@ export default function AddManagersScreen({ navigation }) {
       });
 
       if (!verify.data.success) {
+        setLoading(false);
         alert("Admin verification failed!");
         return;
       }
@@ -97,17 +102,18 @@ export default function AddManagersScreen({ navigation }) {
         name,
         email,
         password,
-        storeId
+        storeId,
       });
 
       if (!registerRes.data.success) {
+        setLoading(false);
         alert(registerRes.data.message);
         return;
       }
 
       alert("Manager Created Successfully!");
 
-      // Reset All
+      // Reset fields
       setName("");
       setEmail("");
       setPassword(generatePassword());
@@ -116,6 +122,8 @@ export default function AddManagersScreen({ navigation }) {
       setShowPopup(false);
     } catch (err) {
       alert("Error: " + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -226,10 +234,15 @@ export default function AddManagersScreen({ navigation }) {
             />
 
             <TouchableOpacity
-              style={styles.submitButton}
-              onPress={handleConfirm}
+              style={[styles.submitButton, { opacity: loading ? 0.6 : 1 }]}
+              onPress={loading ? null : handleConfirm}
+              disabled={loading}
             >
-              <Text style={styles.submitText}>Confirm & Create Manager</Text>
+              {loading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.submitText}>Confirm & Create Manager</Text>
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity
