@@ -8,7 +8,7 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
 
   // AUTO LOGIN ON APP START
   useEffect(() => {
@@ -23,23 +23,25 @@ export const AuthProvider = ({ children }) => {
         let res;
 
         try {
-          // Try manager profile first
           res = await api.get("/auth/manager/profile");
-        } catch {
-          // If manager API fails try admin
-          try {
+
+          if (!res) {
             res = await api.get("/auth/admin/profile");
-          } catch {
-            // Token invalid
-            await AsyncStorage.removeItem("token");
-            setUser(null);
-            setLoading(false);
-            return;
           }
+
+          if (!res) {
+            res = await api.get("/auth/store/profile");
+          }
+        } catch {
+          // Token invalid
+          await AsyncStorage.removeItem("token");
+          setUser(null);
+          setLoading(false);
+          return;
         }
 
         if (res.data?.success) {
-          setUser(res.data.manager || res.data.admin || res.data.user);
+          setUser(res.data.manager || res.data.admin || res.data.store);
         } else {
           await AsyncStorage.removeItem("token");
           setUser(null);
@@ -102,7 +104,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
-        loading,     
+        loading,
         error,
         setError,
         login,
@@ -114,10 +116,9 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-
 // import React, { createContext, useState, useEffect } from "react";
 // import AsyncStorage from "@react-native-async-storage/async-storage";
-// import api from "../api/api"; 
+// import api from "../api/api";
 
 // export const AuthContext = createContext();
 
@@ -152,7 +153,6 @@ export const AuthProvider = ({ children }) => {
 //     return { success: false, message: err.message };
 //   }
 // };
-
 
 //   // Logout
 //   const logout = async () => {

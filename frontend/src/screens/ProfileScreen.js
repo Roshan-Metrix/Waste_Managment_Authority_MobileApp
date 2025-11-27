@@ -3,34 +3,59 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "rea
 import { MaterialIcons } from "@expo/vector-icons";
 import { AuthContext } from "../context/AuthContext";
 import api from "../api/api";
-import colors from '../../src/colors'
+import colors from "../../src/colors";
 
 export default function ProfileScreen({ navigation }) {
   const { user } = useContext(AuthContext);
+
   const [managerData, setManagerData] = useState(null);
   const [storeData, setStoreData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch manager profile only if role == manager
-  const loadManagerProfile = async () => {
+  // Load profile for STORE user
+  const loadStoreProfile = async () => {
     try {
-      if (user?.role === "manager") {
-        const res = await api.get("/auth/manager/profile");
+      const res = await api.get("/auth/store/profile");
 
-        if (res.data.success) {
-          setManagerData(res.data.manager);
-          setStoreData(res.data.store);
-        }
+      if (res.data.success && res.data.store) {
+        setStoreData(res.data.store);
       }
     } catch (error) {
-      console.log("Manager Profile Fetch Error:", error.message);
-    } finally {
-      setLoading(false);
+      console.log("Store Profile Fetch Error:", error.message);
     }
   };
 
+  // Load profile for MANAGER
+  const loadManagerProfile = async () => {
+    try {
+      const res = await api.get("/auth/manager/profile");
+
+      if (res.data.success) {
+        setManagerData(res.data.manager);
+        setStoreData(res.data.store);
+      }
+    } catch (error) {
+      console.log("Manager Profile Fetch Error:", error.message);
+    }
+  };
+
+  // Master Loader
   useEffect(() => {
-    loadManagerProfile();
+    async function fetchData() {
+      setLoading(true);
+
+      if (user?.role === "store") {
+        await loadStoreProfile();
+      }
+
+      if (user?.role === "manager") {
+        await loadManagerProfile();
+      }
+
+      setLoading(false);
+    }
+
+    fetchData();
   }, []);
 
   if (loading) {
@@ -43,6 +68,7 @@ export default function ProfileScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -58,27 +84,67 @@ export default function ProfileScreen({ navigation }) {
           <MaterialIcons name="person" size={90} color={colors.primary} />
         </View>
 
-        {/* Show Admin Data */}
+        {/* ADMIN SECTION */}
         {user?.role === "admin" && (
           <>
             <Text style={styles.nameText}>{user?.name}</Text>
             <Text style={styles.emailText}>{user?.email}</Text>
+
             <Text style={styles.roleText}>
               Role: <Text style={styles.roleHighlight}>ADMIN</Text>
             </Text>
           </>
         )}
 
-        {/* Show Manager Data */}
+        {/* MANAGER SECTION */}
         {user?.role === "manager" && (
           <>
             <Text style={styles.nameText}>{managerData?.name || user.name}</Text>
             <Text style={styles.emailText}>{managerData?.email || user.email}</Text>
+
             <Text style={styles.roleText}>
               Role: <Text style={styles.roleHighlight}>MANAGER</Text>
             </Text>
 
-            {/* Store Info */}
+            {/* Store Details */}
+            {storeData && (
+              <View style={styles.storeBox}>
+                <Text style={styles.storeTitle}>Store Details</Text>
+
+                <Text style={styles.storeText}>
+                  Id: <Text style={styles.storeHighlight}>{storeData?.storeId}</Text>
+                </Text>
+
+                <Text style={styles.storeText}>
+                  Store Name: <Text style={styles.storeHighlight}>{storeData?.name}</Text>
+                </Text>
+
+                <Text style={styles.storeText}>
+                  Location: <Text style={styles.storeHighlight}>{storeData?.storeLocation}</Text>
+                </Text>
+
+                <Text style={styles.storeText}>
+                  Contact: <Text style={styles.storeHighlight}>{storeData?.contactNumber}</Text>
+                </Text>
+
+                <Text style={styles.storeText}>
+                  Email: <Text style={styles.storeHighlight}>{storeData?.email}</Text>
+                </Text>
+              </View>
+            )}
+          </>
+        )}
+
+        {/* STORE SECTION */}
+        {user?.role === "store" && storeData && (
+          <>
+            <Text style={styles.nameText}>{storeData?.name}</Text>
+            <Text style={styles.emailText}>{storeData?.email}</Text>
+
+            <Text style={styles.roleText}>
+              Role: <Text style={styles.roleHighlight}>STORE</Text>
+            </Text>
+
             <View style={styles.storeBox}>
               <Text style={styles.storeTitle}>Store Details</Text>
 
@@ -106,7 +172,7 @@ export default function ProfileScreen({ navigation }) {
         )}
       </View>
 
-      {/* Change Password */}
+      {/* Change Password Button */}
       <TouchableOpacity
         style={styles.changePasswordBtn}
         onPress={() => navigation.navigate("ChangePasswordScreen")}
@@ -115,12 +181,6 @@ export default function ProfileScreen({ navigation }) {
         <MaterialIcons name="lock-reset" size={24} color="#fff" />
         <Text style={styles.changePasswordText}>Change Password</Text>
       </TouchableOpacity>
-
-      {/* Info Note */}
-      {/* <View style={styles.infoBox}>
-        <MaterialIcons name="info" size={22} color={colors.primary} />
-        <Text style={styles.infoText}>This profile is linked to your Decathlon internal account.</Text>
-      </View> */}
     </View>
   );
 }
@@ -182,7 +242,6 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
 
-  /* Store Box */
   storeBox: {
     width: "100%",
     backgroundColor: "#e0f2fe",
@@ -206,7 +265,6 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
 
-  /* Change Password Button */
   changePasswordBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -216,30 +274,11 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginTop: 25,
     justifyContent: "center",
-    shadowColor: colors.primary,
-    shadowOpacity: 0.25,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 4,
   },
   changePasswordText: {
     color: "#fff",
     fontSize: 17,
     fontWeight: "600",
     marginLeft: 10,
-  },
-
-  infoBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#eff6ff",
-    padding: 14,
-    borderRadius: 12,
-    marginTop: 30,
-  },
-  infoText: {
-    color: "#1e3a8a",
-    fontSize: 14,
-    marginLeft: 10,
-    flex: 1,
   },
 });

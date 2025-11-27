@@ -5,11 +5,34 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Alert, 
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-export default function ManageManagerScreen({ navigation }) {
+// Reusable component for the action cards
+const FeatureCard = ({ title, iconName, iconColor, onPress, description }) => (
+  <TouchableOpacity
+    style={[styles.cardContainer, { borderLeftColor: iconColor }]}
+    onPress={onPress}
+    activeOpacity={0.7}
+  >
+    <View style={[styles.iconWrapper, { backgroundColor: iconColor + "15" }]}>
+      <MaterialIcons name={iconName} size={30} color={iconColor} />
+    </View>
+    <View style={styles.textWrapper}>
+      <Text style={styles.cardTitle}>{title}</Text>
+      <Text style={styles.cardDescription}>{description}</Text>
+    </View>
+    <MaterialIcons
+      name="arrow-forward-ios"
+      size={16}
+      color="#9ca3af"
+      style={{ marginLeft: 10 }}
+    />
+  </TouchableOpacity>
+);
 
+export default function ManageManagerScreen({ navigation }) {
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -18,49 +41,69 @@ export default function ManageManagerScreen({ navigation }) {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
+          <MaterialIcons name="arrow-back" size={24} color="#1e40af" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Manager Management</Text>
-        <View style={{ width: 26 }} />
+        <View style={{ width: 24 }} />
       </View>
 
-      {/* Content */}
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.iconCircle}>
-          <MaterialIcons name="supervisor-account" size={60} color="#2563eb" />
+      {/* Body */}
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.heroSection}>
+          <View style={styles.iconCircle}>
+            <MaterialIcons
+              name="supervisor-account"
+              size={60}
+              color="#1e40af"
+            />
+          </View>
+          <Text style={styles.subTitle}>Manager Control Hub</Text>
+          <Text style={styles.desc}>
+            Manage all staff accounts, including adding new users, modifying
+            roles, and managing credentials.
+          </Text>
         </View>
 
-        <Text style={styles.subTitle}>Manager Control Panel</Text>
-        <Text style={styles.desc}>
-          Manage all store managers and staff accounts here. You can add new
-          users, edit existing ones, or remove inactive accounts.
-        </Text>
-
-        {/* Action Buttons */}
+        {/* Action Cards */}
         <View style={styles.actionsContainer}>
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: "#22c55e" }]}
+          <Text style={styles.actionSectionTitle}>Account Operations</Text>
+
+          <FeatureCard
+            title="Add New Manager"
+            description="Create a new account and assign initial store roles."
+            iconName="person-add"
+            iconColor="#22c55e" // Bright Green
             onPress={() => navigation.navigate("AddManagersScreen")}
-          >
-            <MaterialIcons name="person-add" size={22} color="#fff" />
-            <Text style={styles.actionText}>Add Manager</Text>
-          </TouchableOpacity>
+          />
 
-          <TouchableOpacity
-            style={styles.actionButton}
+          <FeatureCard
+            title="View All Managers"
+            description="Browse, filter, and search all active accounts."
+            iconName="people"
+            iconColor="#2563eb"
             onPress={() => navigation.navigate("ViewManagersScreen")}
-          >
-            <MaterialIcons name="people" size={22} color="#fff" />
-            <Text style={styles.actionText}>View All Managers</Text>
-          </TouchableOpacity>
+          />
 
+          <FeatureCard
+            title="Remove Manager"
+            description="Deactivate or permanently delete a staff account."
+            iconName="person-remove"
+            iconColor="#ef4444" 
+            onPress={() =>
+              Alert.alert("Warning", "On development process . . .")
+            }
+          />
         </View>
 
-        {/* Info Section */}
-        <View style={styles.infoBox}>
-          <MaterialIcons name="info-outline" size={22} color="#2563eb" />
-          <Text style={styles.infoText}>
-            Only admins can promote users or modify their access roles.
+        {/* Info Section - Now styled as a prominent Callout */}
+        <View style={styles.calloutBox}>
+          <MaterialIcons name="security" size={22} color="#1e40af" />
+          <Text style={styles.calloutText}>
+            Administrative access is required to modify user promotion status
+            and security roles.
           </Text>
         </View>
       </ScrollView>
@@ -71,85 +114,132 @@ export default function ManageManagerScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f9fafb",
+    backgroundColor: "#f4f7fc", 
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 60,
+    paddingTop: 50, 
     paddingBottom: 15,
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: "#ffffff",
+    // Enhanced Shadow
+    shadowColor: "#1e40af",
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    elevation: 6,
   },
   backButton: {
     padding: 4,
   },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#2563eb",
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#1e40af", 
   },
   content: {
     paddingHorizontal: 20,
-    paddingVertical: 30,
+    paddingVertical: 20,
     alignItems: "center",
   },
-  iconCircle: {
-    backgroundColor: "#e0e7ff",
-    padding: 20,
-    borderRadius: 100,
-    marginBottom: 20,
-  },
-  subTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#111827",
+  // --- Hero Section ---
+  heroSection: {
+    alignItems: "center",
+    paddingVertical: 20,
     marginBottom: 10,
   },
+  iconCircle: {
+    backgroundColor: "#dbeafe", 
+    padding: 25,
+    borderRadius: 50,
+    marginBottom: 15,
+    shadowColor: "#1e40af",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  subTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#1f2937",
+    marginBottom: 8,
+  },
   desc: {
-    fontSize: 15,
+    fontSize: 14,
     textAlign: "center",
     color: "#6b7280",
-    marginBottom: 25,
-    paddingHorizontal: 10,
-    lineHeight: 22,
+    lineHeight: 20,
+    maxWidth: 350,
   },
+  // --- Action Cards Container ---
   actionsContainer: {
     width: "100%",
-    gap: 15,
+    paddingTop: 10,
+    gap: 12, 
   },
-  actionButton: {
+  actionSectionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#4b5563",
+    marginBottom: 8,
+    marginLeft: 5,
+  },
+  // --- Feature Card Styles ---
+  cardContainer: {
     flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    padding: 16,
+    borderRadius: 16, 
+    borderLeftWidth: 6, 
+    // Prominent Shadow
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  iconWrapper: {
+    width: 50,
+    height: 50,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#2563eb",
-    paddingVertical: 14,
-    borderRadius: 14,
+    marginRight: 15,
   },
-  actionText: {
-    color: "#fff",
+  textWrapper: {
+    flex: 1,
+  },
+  cardTitle: {
     fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 8,
+    fontWeight: "700",
+    color: "#1f2937",
+    marginBottom: 2,
   },
-  infoBox: {
+  cardDescription: {
+    fontSize: 12,
+    color: "#6b7280",
+  },
+  // --- New Callout Box Style ---
+  calloutBox: {
     flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#eff6ff",
-    padding: 14,
+    alignItems: "flex-start",
+    backgroundColor: "#e0e7ff", 
+    padding: 16,
     borderRadius: 12,
     marginTop: 40,
+    borderLeftWidth: 4,
+    borderLeftColor: "#1e40af",
+    width: "100%",
   },
-  infoText: {
-    color: "#1e3a8a",
+  calloutText: {
+    color: "#1e40af",
     fontSize: 14,
     marginLeft: 10,
     flex: 1,
+    lineHeight: 20,
   },
 });

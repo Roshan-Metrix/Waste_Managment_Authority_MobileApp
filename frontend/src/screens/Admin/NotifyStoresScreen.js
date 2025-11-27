@@ -1,9 +1,3 @@
-// import FeatureLayout from "../../Components/FeatureLayout";
-
-// export default function NotifyStoresScreen({ navigation }) {
-//   return <FeatureLayout navigation={navigation} title="Notify Stores" icon="notifications" />;
-// }
-
 import React, { useState } from "react";
 import {
   View,
@@ -16,6 +10,8 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
+const IS_MAINTENANCE_MODE = true; 
+
 export default function NotifyStoresScreen({ navigation }) {
   const [message, setMessage] = useState("");
 
@@ -27,6 +23,53 @@ export default function NotifyStoresScreen({ navigation }) {
     Alert.alert("Success", "Notification sent successfully!");
     setMessage("");
   };
+
+   const handleRefresh = () => {
+    console.log("Attempting refresh...");
+    alert("Sorry , Not maintained")
+  };
+
+  if (IS_MAINTENANCE_MODE) {
+      return (
+        <View style={styles.container}>
+          <View style={styles.header}>
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                  <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>System Status</Text>
+              <View style={{ width: 26 }} /> 
+          </View>
+  
+          <View style={styles.maintenanceContainer}>
+            <MaterialIcons 
+              name="build" 
+              size={80} 
+              color="#f59e0b" 
+              style={styles.maintenanceIcon}
+            />
+            <Text style={styles.maintenanceTitle}>
+              System Under Maintenance
+            </Text>
+            <Text style={styles.maintenanceMessage}>
+              We're currently performing scheduled maintenance to improve system performance and add new features.
+            </Text>
+            <Text style={styles.maintenanceDetail}>
+              Estimated downtime: **2 hours**
+              <Text style={{ fontWeight: '700', color: '#dc2626' }}> (Expected back at 1:00 AM IST)</Text>
+            </Text>
+            
+            <TouchableOpacity 
+              style={styles.refreshButton}
+              onPress={handleRefresh}
+            >
+              <MaterialIcons name="refresh" size={20} color="#fff" />
+              <Text style={styles.refreshButtonText}>Check Status Now</Text>
+            </TouchableOpacity>
+  
+          </View>
+        </View>
+      );
+    }
 
   return (
     <View style={styles.container}>
@@ -92,7 +135,7 @@ export default function NotifyStoresScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
+   container: {
     flex: 1,
     backgroundColor: "#f9fafb",
   },
@@ -105,7 +148,7 @@ const styles = StyleSheet.create({
     paddingBottom: 15,
     backgroundColor: "#fff",
     shadowColor: "#000",
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
     elevation: 3,
@@ -114,6 +157,64 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "700",
     color: "#2563eb",
+  },
+  
+  maintenanceContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 30,
+    backgroundColor: "#fff",
+    margin: 20,
+    borderRadius: 16,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+  },
+  maintenanceIcon: {
+    marginBottom: 20,
+    backgroundColor: '#fffbe5', 
+    padding: 15,
+    borderRadius: 50,
+    borderWidth: 2,
+    borderColor: '#fcd34d',
+  },
+  maintenanceTitle: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#b45309", 
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  maintenanceMessage: {
+    fontSize: 16,
+    color: "#4b5563",
+    textAlign: "center",
+    marginBottom: 20,
+    lineHeight: 24,
+  },
+  maintenanceDetail: {
+    fontSize: 14,
+    color: "#dc2626", 
+    textAlign: "center",
+    marginBottom: 30,
+    fontWeight: '500'
+  },
+  refreshButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: "#2563eb",
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 10,
+  },
+  refreshButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+    marginLeft: 8,
   },
   content: {
     paddingHorizontal: 20,

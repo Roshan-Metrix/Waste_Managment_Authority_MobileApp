@@ -11,6 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import api from "../../../api/api";
 import colors from '../../../colors'
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ViewOwnStoreManagersScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
@@ -20,8 +21,10 @@ export default function ViewOwnStoreManagersScreen({ navigation }) {
 
   const loadManagers = async () => {
     try {
-      const res = await api.get("/auth/manager/get-store-managers");
+      const storeId = await AsyncStorage.getItem("storeId");
 
+      const res = await api.get(`/auth/manager/get-store-managers/${storeId}`);
+      
       if (res.data.success) {
         setManagers(res.data.managers);
         setFilteredManagers(res.data.managers);

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   View,
   Text,
@@ -17,16 +17,17 @@ import {
   clearOldTransaction,
   saveTodayTransaction,
 } from "../../../utils/storage";
-import colors from '../../../colors'
+import colors from "../../../colors";
+import { AuthContext } from "../../../context/AuthContext";
 
 export default function AddTransactionScreen({ navigation }) {
+  const { user } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [sendingLoading, setSendingLoading] = useState(false);
   const [storeId, setStoreId] = useState("");
   const [storeName, setStoreName] = useState("");
   const [storeLocation, setStoreLocation] = useState("");
   const [managerName, setManagerName] = useState("");
-  // const [transactionId, setTransactionId] = useState("");
 
   // Vendor Dropdown
   const [vendorOpen, setVendorOpen] = useState(false);
@@ -43,70 +44,34 @@ export default function AddTransactionScreen({ navigation }) {
   // Fetch manager profile
   const fetchProfile = async () => {
     try {
-      const res = await api.get("/auth/manager/profile");
+      if (user?.role === "manager") {
+        const res = await api.get("/auth/manager/profile");
+        if (res.data.success) {
+          setStoreId(res.data.store.storeId);
+          setStoreName(res.data.store.name);
+          setStoreLocation(res.data.store.storeLocation);
+          setManagerName(res.data.manager.name || "Manager");
+        }
+      }
 
-      if (res.data.success) {
-        setStoreId(res.data.store.storeId);
-        setStoreName(res.data.store.name);
-        setStoreLocation(res.data.store.storeLocation);
-        setManagerName(res.data.manager.name || "Manager");
+      if (user?.role === "store") {
+        const res = await api.get("/auth/store/profile");
+        if (res.data.success) {
+          setStoreId(res.data.store.storeId);
+          setStoreName(res.data.store.name);
+          setStoreLocation(res.data.store.storeLocation);
+          setManagerName("store");
+        }
       }
     } catch (err) {
-      Alert.alert("Error", "Failed to load manager profile.");
+      Alert.alert("Error", "Failed to load profile.");
     }
     setLoading(false);
   };
 
   useEffect(() => {
     fetchProfile();
-    // clearOldTransaction();
   }, []);
-
-  //   const handleProcess = async () => {
-
-  //     if (!vendor) {
-  //       return Alert.alert("Missing", "Please select Vendor Name.");
-  //     }
-
-  //     if (vendor === "Others" && !otherVendor.trim()) {
-  //       return Alert.alert("Missing Field", "Please enter Vendor Name.");
-  //     }
-
-  //     try {
-  //       setSendingLoading(true);
-  //       const res = await api.post("/manager/transaction/add-transaction", {
-  //         storeId,
-  //         storeName,
-  //         storeLocation,
-  //         managerName,
-  //         vendorName: vendor === "Others" ? otherVendor : vendor,
-  //       });
-
-  //       const transactionId = res.data?.transactionId;
-  // console.log("Transaction ID:", transactionId);
-
-  //       if (!transactionId) {
-  //         return Alert.alert("Error", "Failed to create transaction.");
-  //       }
-
-  //       // SAVE TO ASYNC STORAGE
-  //       await saveTodayTransaction(transactionId);
-  //       setSendingLoading(false)
-  //       // Navigate
-  //       navigation.navigate("ProcessTransactionScreen");
-  //     } catch (error) {
-  //       // if (error.response?.data?.transactionId) {
-  //       //   const existingId = error.response.data.transactionId;
-
-  //         // Save existing id locally
-  //         // await saveTodayTransaction(existingId);
-
-  //         Alert.alert("Error", "Something went wrong while creating transaction.");
-  //         return navigation.navigate("UserScreen");
-  //         // }
-
-  //     }
-  //   };
 
   const handleProcess = async () => {
     if (!vendor) {
@@ -136,10 +101,10 @@ export default function AddTransactionScreen({ navigation }) {
         setSendingLoading(false);
         return Alert.alert("Error", "Failed to create transaction.");
       }
-      
+
       // Clear old transaction
       await clearOldTransaction();
-      
+
       // SAVE New transaction TO ASYNC STORAGE
       await saveTodayTransaction(transactionId);
 
@@ -148,7 +113,7 @@ export default function AddTransactionScreen({ navigation }) {
       navigation.navigate("ProcessTransactionScreen");
     } catch (error) {
       console.log("Transaction Error:", error.response?.data || error.message);
-      Alert.alert("Transaction Error:",error.response?.data.message);
+      Alert.alert("Transaction Error:", error.response?.data.message);
       setSendingLoading(false);
       return navigation.navigate("UserScreen");
     }
@@ -161,9 +126,11 @@ export default function AddTransactionScreen({ navigation }) {
       </View>
     );
   }
-   
+
   // Get Today date
-    const today = new Date().toLocaleString("en-CA", { timeZone: "Asia/Kolkata" }).split(",")[0];
+  const today = new Date()
+    .toLocaleString("en-CA", { timeZone: "Asia/Kolkata" })
+    .split(",")[0];
 
   return (
     <View style={styles.container}>
@@ -177,7 +144,7 @@ export default function AddTransactionScreen({ navigation }) {
       </View>
 
       <View style={styles.form}>
-         {/* Date */}
+        {/* Date */}
         <Text style={styles.label}>Date</Text>
         <TextInput style={styles.input} value={today} editable={false} />
 

@@ -2,8 +2,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const api = axios.create({
-  baseURL: "https://waste-managment-authority-mobileapp.onrender.com/api",
-  // baseURL: "http://localhost:4000/api",
+  baseURL: process.env.EXPO_PUBLIC_BACKEND_URL,
 });
 
 api.interceptors.request.use(async (config) => {

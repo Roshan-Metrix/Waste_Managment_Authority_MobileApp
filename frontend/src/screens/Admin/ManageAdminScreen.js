@@ -1,174 +1,245 @@
 import React from "react";
 import {
-View,
-Text,
-StyleSheet,
-TouchableOpacity,
-ScrollView,
-Platform,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Platform,
+  Alert,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-export default function ManageAdminScreen({ navigation }) {
-
-return (
- <View style={styles.container}>
- {/* Header */}
- <View style={styles.header}>
+// Reusable component for the action cards (for consistent UI across screens)
+const FeatureCard = ({ title, iconName, iconColor, onPress, description }) => (
   <TouchableOpacity
-  onPress={() => navigation.goBack()}
-  style={styles.backButton}
+    style={[styles.cardContainer, { borderLeftColor: iconColor }]}
+    onPress={onPress}
+    activeOpacity={0.7}
   >
-  <MaterialIcons name="arrow-back" size={26} color="#1d4ed8" />
+    <View style={[styles.iconWrapper, { backgroundColor: iconColor + "15" }]}>
+      <MaterialIcons name={iconName} size={30} color={iconColor} />
+    </View>
+    <View style={styles.textWrapper}>
+      <Text style={styles.cardTitle}>{title}</Text>
+      <Text style={styles.cardDescription}>{description}</Text>
+    </View>
+    <MaterialIcons
+      name="arrow-forward-ios"
+      size={16}
+      color="#9ca3af"
+      style={{ marginLeft: 10 }}
+    />
   </TouchableOpacity>
-  <Text style={styles.headerTitle}>Admin Access Hub</Text>
-  <View style={{ width: 26 }} />
- </View>
-
- {/* Content */}
- <ScrollView contentContainerStyle={styles.content}>
-  <View style={styles.iconCircle}>
-  <MaterialIcons name="supervisor-account" size={60} color="#1d4ed8" />
-  </View>
-
-  <Text style={styles.subTitle}>Administrator Control Panel</Text>
-  <Text style={styles.desc}>
-  Use this portal to manage and maintain the list of system administrators.
-  You can add new admins or review existing accounts.
-  </Text>
-
-  {/* Action Buttons */}
-  <View style={styles.actionsContainer}>
-  <TouchableOpacity
-   style={[styles.actionButton, styles.shadow, { backgroundColor: "#10b981" }]}
-   onPress={() => navigation.navigate("AddAdminsScreen")}
-  >
-   <MaterialIcons name="person-add" size={24} color="#fff" />
-   <Text style={styles.actionText} >Add New Admin</Text>
-  </TouchableOpacity>
-  
-  <TouchableOpacity
-   style={[styles.actionButton, styles.shadow, { backgroundColor: "#3b82f6" }]}
-   onPress={() => navigation.navigate("ViewOtherAdminsScreen")}
-  >
-   <MaterialIcons name="people" size={24} color="#fff" />
-   <Text style={styles.actionText}>Review Active Admins</Text>
-  </TouchableOpacity>
-
-  </View>
-
-
-  {/* Info Section */}
-  <View style={styles.infoBox}>
-  <MaterialIcons name="security" size={24} color="#1d4ed8" />
-  <Text style={styles.infoText}>
-   Note: Administrative privileges grant full control over user roles, access, and settings.
-  </Text>
-  </View>
- </ScrollView>
- </View>
 );
+
+export default function ManageAdminScreen({ navigation }) {
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <MaterialIcons name="arrow-back" size={24} color="#1e40af" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Admin Access Hub</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
+      {/* Content */}
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.heroSection}>
+          <View style={styles.iconCircle}>
+            <MaterialIcons name="security" size={60} color="#1e40af" />
+          </View>
+          <Text style={styles.subTitle}>System Administrator Panel</Text>
+          <Text style={styles.desc}>
+            This portal is exclusively for managing and maintaining the
+            highest-level system administrators. Handle with care.
+          </Text>
+        </View>
+
+        {/* Action Cards */}
+        <View style={styles.actionsContainer}>
+          <Text style={styles.actionSectionTitle}>Privilege Management</Text>
+
+          <FeatureCard
+            title="Add New Admin"
+            description="Grant top-level access to a new user account."
+            iconName="person-add"
+            iconColor="#10b981"
+            onPress={() => navigation.navigate("AddAdminsScreen")}
+          />
+
+          <FeatureCard
+            title="Review Active Admins"
+            description="View a list of all current administrators and their statuses."
+            iconName="people"
+            iconColor="#3b82f6"
+            onPress={() => navigation.navigate("ViewOtherAdminsScreen")}
+          />
+
+          <FeatureCard
+            title="Revoke Admin Access"
+            description="Remove administrative privileges from an existing account."
+            iconName="no-accounts"
+            iconColor="#ef4444"
+            onPress={() =>
+              Alert.alert("Security Action", "On development phase. . .")
+            }
+          />
+        </View>
+
+        {/* Info Section - Styled as a prominent Callout */}
+        <View style={styles.calloutBox}>
+          <MaterialIcons
+            name="admin-panel-settings"
+            size={22}
+            color="#1e40af"
+          />
+          <Text style={styles.calloutText}>
+            Administrative privileges grant full, unrestricted control over user
+            roles, settings, and application data.
+          </Text>
+        </View>
+      </ScrollView>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-container: {
- flex: 1,
- backgroundColor: "#f8fafc", 
-},
-// Reusable shadow style
-shadow: {
- shadowColor: "#000",
- shadowOffset: {
- width: 0,
- height: 4,
- },
- shadowOpacity: 0.1,
- shadowRadius: 6,
- elevation: 8,
-},
-header: {
- flexDirection: "row",
- alignItems: "center",
- justifyContent: "space-between",
- paddingHorizontal: 20,
- paddingTop: Platform.OS === 'android' ? 50 : 60,
- paddingBottom: 15,
- backgroundColor: "#fff",
- borderBottomWidth: 1,
- borderBottomColor: '#e5e7eb',
- ...Platform.select({ ios: { zIndex: 10 }, default: { elevation: 3 } }),
-},
-backButton: {
- padding: 5,
-},
-headerTitle: {
- fontSize: 20,
- fontWeight: "700",
- color: "#1f2937", 
-},
-content: {
- paddingHorizontal: 25,
- paddingVertical: 40,
- alignItems: "center",
-},
-iconCircle: {
- backgroundColor: "#e0f2fe", 
- padding: 30,
- borderRadius: 120,
- marginBottom: 30,
- borderWidth: 2,
- borderColor: "#3b82f6", 
- ...Platform.select({ ios: { shadowColor: "#3b82f6", shadowOpacity: 0.2, shadowRadius: 10 } }), 
-},
-subTitle: {
- fontSize: 24,
- fontWeight: "700",
- color: "#1d4ed8", 
- marginBottom: 15,
-},
-desc: {
- fontSize: 16,
- textAlign: "center",
- color: "#6b7280", 
- marginBottom: 40,
- paddingHorizontal: 10,
- lineHeight: 24,
-},
-actionsContainer: {
- width: "100%",
- gap: 20,
-},
-actionButton: {
- flexDirection: "row",
- alignItems: "center",
- justifyContent: "center",
- paddingVertical: 18,
- borderRadius: 16,
- overflow: 'hidden', 
-},
-actionText: {
- color: "#fff",
- fontSize: 17,
- fontWeight: "700",
- marginLeft: 10,
-},
-infoBox: {
- flexDirection: "row",
- alignItems: "flex-start",
- backgroundColor: "#e0f2fe", 
- padding: 18,
- borderRadius: 16,
- marginTop: 50,
- borderWidth: 1,
- borderColor: "#3b82f6", 
- ...Platform.select({ ios: { shadowOpacity: 0.05, shadowRadius: 4 } }),
-},
-infoText: {
- color: "#1d4ed8", 
- fontSize: 14,
- marginLeft: 12,
- flex: 1,
- lineHeight: 20,
- fontWeight: "500",
-},
+  container: {
+    flex: 1,
+    backgroundColor: "#f4f7fc",
+  },
+  // --- Header ---
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === "android" ? 50 : 60,
+    paddingBottom: 15,
+    backgroundColor: "#ffffff",
+    shadowColor: "#1e40af",
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  backButton: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#1e40af",
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    alignItems: "center",
+  },
+  // --- Hero Section ---
+  heroSection: {
+    alignItems: "center",
+    paddingVertical: 20,
+    marginBottom: 10,
+  },
+  iconCircle: {
+    backgroundColor: "#dbeafe",
+    padding: 25,
+    borderRadius: 50,
+    marginBottom: 15,
+    shadowColor: "#1e40af",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  subTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#1f2937",
+    marginBottom: 8,
+  },
+  desc: {
+    fontSize: 14,
+    textAlign: "center",
+    color: "#6b7280",
+    lineHeight: 20,
+    maxWidth: 350,
+  },
+  // --- Action Cards Container ---
+  actionsContainer: {
+    width: "100%",
+    paddingTop: 10,
+    gap: 12,
+  },
+  actionSectionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#4b5563",
+    marginBottom: 8,
+    marginLeft: 5,
+  },
+  // --- Feature Card Styles  ---
+  cardContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    padding: 16,
+    borderRadius: 16,
+    borderLeftWidth: 6,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  iconWrapper: {
+    width: 50,
+    height: 50,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 15,
+  },
+  textWrapper: {
+    flex: 1,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1f2937",
+    marginBottom: 2,
+  },
+  cardDescription: {
+    fontSize: 12,
+    color: "#6b7280",
+  },
+  // --- Callout Box Style (Info Section) ---
+  calloutBox: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#e0e7ff", // Light blue background
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 40,
+    borderLeftWidth: 4,
+    borderLeftColor: "#1e40af",
+    width: "100%",
+  },
+  calloutText: {
+    color: "#1e40af",
+    fontSize: 14,
+    marginLeft: 10,
+    flex: 1,
+    lineHeight: 20,
+  },
 });

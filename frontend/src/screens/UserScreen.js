@@ -39,6 +39,19 @@ useEffect(() => {
         setLoading(false);
       }
     }
+    if (user?.role === "store") {
+      try {
+        const res = await api.get("/auth/store/profile");
+        if (res.data.success) {
+          await AsyncStorage.setItem("storeId", res.data.store.storeId);
+        }
+      } catch (error) {
+        console.log("Manager Profile Fetch Error:", error.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
   };
 
   addStoreId();
@@ -115,6 +128,25 @@ useEffect(() => {
     ],
 
     manager: [
+      {
+        title: "Process Transaction",
+        icon: "account-balance",
+        // screen: "AddTransactionScreen",
+        screen: "AddProceedTransactionScreen",
+      },
+      {
+        title: "Manage Data",
+        icon: "folder",
+        screen: "ManageDataScreen",
+      },
+      {
+        title: "Manage Managers",
+        icon: "supervisor-account",
+        screen: "ManageOwnStoreManagersScreen",
+      },
+      { title: "View Tasks", icon: "assignment", screen: "ViewTasksScreen" },
+    ],
+    store: [
       {
         title: "Process Transaction",
         icon: "account-balance",

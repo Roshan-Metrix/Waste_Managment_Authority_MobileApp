@@ -13,6 +13,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import api from "../../../api/api";
 import colors from "../../../colors"
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function AddOtherManagersScreen({ navigation }) {
   const [name, setName] = useState("");
@@ -33,7 +34,7 @@ export default function AddOtherManagersScreen({ navigation }) {
     const chars =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let pass = "";
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 10; i++) {
       pass += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return pass;
@@ -74,22 +75,22 @@ export default function AddOtherManagersScreen({ navigation }) {
     setShowPopup(true);
   };
 
-  const loadManagerProfile = async () => {
+  const getStoreId = async () => {
     try {
-        const res = await api.get("/auth/manager/profile");
-        if (res.data.success) {
-          setStoreId(res.data.store.storeId);
+      const storeId = await AsyncStorage.getItem("storeId");
+        if (storeId) {
+          setStoreId(storeId);
         }
       }
     catch (error) {
-      console.log("Manager Profile Fetch Error:", error.message);
+      console.log("Store Id fetch error :", error.message);
     } finally {
       setLoading(false);
     }
   };
   
   useEffect(() => {
-    loadManagerProfile();
+    getStoreId();
   }, []);
 
   // FINAL CONFIRM -> Verify credentials -> register new manager
