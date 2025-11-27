@@ -16,16 +16,3 @@ const dateString = `${day}${month}${year}`;  // e.g. 24112025
   
   return transactionId;
 };
-
-export const CheckTodaysTransactionId = async (storeId) => {
- 
-const today = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
-const day = String(today.getDate()).padStart(2, "0");
-const month = String(today.getMonth() + 1).padStart(2, "0");
-const year = today.getFullYear();
-const dateString = `${day}${month}${year}`;  // e.g. 24112025
-
-  const transactionIdWithoutCount = `${storeId}${dateString}`;
-  
-  return transactionIdWithoutCount;
-};

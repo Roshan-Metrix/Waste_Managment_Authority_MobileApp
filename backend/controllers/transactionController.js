@@ -1,6 +1,5 @@
 import transactionModel from "../models/transactionModel.js";
 import {
-  CheckTodaysTransactionId,
   generateTransactionId,
 } from "../utils/generateTransactionId.js";
 
@@ -21,23 +20,8 @@ export const AddTransactionDetailController = async (req, res) => {
         .status(400)
         .json({ success: false, message: "All fields are required" });
     }
-
+    
     // Generate unique transactionId
-    const transactionIdWithoutCount = await CheckTodaysTransactionId(storeId);
-
-    // Check for existing open transaction for the store
-    const existingTransaction = await transactionModel.findOne({
-      transactionId: { $regex: `^${transactionIdWithoutCount}` },
-    });
-
-    if (existingTransaction) {
-      return res.status(400).json({
-        success: false,
-        message: "Transaction already exists for today",
-        transactionId: existingTransaction.transactionId,
-      });
-    }
-
     const transactionId = await generateTransactionId(storeId);
 
     const newTransaction = new transactionModel({
