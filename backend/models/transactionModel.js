@@ -49,6 +49,9 @@ const transactionSchema = new mongoose.Schema(
       image: {
         type: String,
       },
+      error:{
+        type: Number,
+      },
     },
     store: {
       storeId: {

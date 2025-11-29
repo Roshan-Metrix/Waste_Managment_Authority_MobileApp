@@ -94,7 +94,7 @@ export const TransactionItemsController = async (req, res) => {
       itemNo,
       materialType,
       image,
-      weight,
+      weight : weight - transaction.calibration.error,
       weightSource,
     });
 
@@ -126,11 +126,7 @@ export const TransactionCalibrationController = async (req, res) => {
         .json({ success: false, message: "All fields are required" });
     }
 
-    if (Math.abs(fetchWeight - enterWeight) > 0.1) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Failed : Error must be less than 0.1 kg" });
-    }
+    const error = Math.abs(fetchWeight - enterWeight);
 
     const transaction = await transactionModel.findOne({ transactionId });
 
@@ -140,7 +136,7 @@ export const TransactionCalibrationController = async (req, res) => {
         .json({ success: false, message: "Transaction not found" });
     }
 
-    transaction.calibration = { image };
+    transaction.calibration = { image,error };
 
     await transaction.save();
 
@@ -148,6 +144,7 @@ export const TransactionCalibrationController = async (req, res) => {
       success: true,
       message: "Calibration added successfully",
       calibration: transaction.calibration,
+      error: transaction.error,
     });
   } catch (error) {
     console.log("Error in TransactionCalibrationController:", error);
