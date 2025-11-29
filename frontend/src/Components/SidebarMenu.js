@@ -57,7 +57,7 @@ export const SidebarMenu = ({ visible, onClose, role, navigation, logout, user }
           elevation: 30,
         }}
       >
-        <Image source={require('../../assets/splash-icon1.png')} style={{resizeMode:"contain",width:220,height:50,marginBottom:5,marginTop:-5}}/>
+        <Image source={require('../../assets/splash-icon.png')} style={{resizeMode:"contain",width:220,height:50,marginBottom:5,marginTop:-5}}/>
         {/* Role Header */}
         <View
           style={{

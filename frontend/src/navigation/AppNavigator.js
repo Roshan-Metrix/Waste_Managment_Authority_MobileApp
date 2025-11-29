@@ -17,7 +17,6 @@ import ChangePasswordScreen from "../screens/ChangePasswordScreen";
 import AddStoreScreen from "../screens/Admin/AddStoreScreen";
 import ManageStoresScreen from "../screens/Admin/ManageStoresScreen";
 import NotifyStoresScreen from "../screens/Admin/NotifyStoresScreen";
-import DataAnalysisScreen from "../screens/Admin/DataAnalysisScreen";
 import ManageManagerScreen from "../screens/Admin/ManageManagerScreen";
 import ManageAdminScreen from "../screens/Admin/ManageAdminScreen";
 import ViewOtherAdminsScreen from "../screens/Admin/ManageAdmins/ViewOtherAdminsScreen";
@@ -45,6 +44,7 @@ import ViewTasksScreen from "../screens/Manager/ViewTasksScreen";
 import ManageDataScreen from "../screens/Manager/ManageData/ManageDataScreen";
 import ShowAllTransaction from "../screens/Manager/ManageData/ShowAllTransaction";
 import SelectedTransactionItems from "../screens/Manager/ManageData/SelectedTransactionItems";
+import AllTransactionsScreen from "../screens/Admin/ManageStores/AllTransactionsScreen";
 
 
 const Stack = createNativeStackNavigator();
@@ -84,7 +84,6 @@ if (loading) return <LoadingScreen />;
             <Stack.Screen name="ManageManagerScreen" component={ManageManagerScreen} />
             <Stack.Screen name="ManageAdminScreen" component={ManageAdminScreen} />
             <Stack.Screen name="NotifyStoresScreen" component={NotifyStoresScreen} />
-            <Stack.Screen name="DataAnalysisScreen" component={DataAnalysisScreen} />
             <Stack.Screen name="ViewOtherAdminsScreen" component={ViewOtherAdminsScreen} />
             <Stack.Screen name="AddAdminsScreen" component={AddAdminsScreen} />
             <Stack.Screen name="AddManagersScreen" component={AddManagersScreen} />
@@ -92,7 +91,7 @@ if (loading) return <LoadingScreen />;
             <Stack.Screen name="RemoveStoresScreen" component={RemoveStoresScreen} />
             <Stack.Screen name="ViewAllStoresScreen" component={ViewAllStoresScreen} />
 
-            {/* Manager Screens */}
+            {/* Manager & Store Screens */}
             <Stack.Screen name="ManageDataScreen" component={ManageDataScreen} />
             <Stack.Screen name="ManageOwnStoreManagersScreen" component={ManageOwnStoreManagersScreen} />
             <Stack.Screen name="ExportDataScreen" component={ExportDataScreen} />
@@ -109,6 +108,7 @@ if (loading) return <LoadingScreen />;
             <Stack.Screen name="AddProceedTransactionScreen" component={AddProceedTransactionScreen} />
             <Stack.Screen name="ShowAllTransaction" component={ShowAllTransaction} />
             <Stack.Screen name="SelectedTransactionItems" component={SelectedTransactionItems} />
+            <Stack.Screen name="AllTransactionsScreen" component={AllTransactionsScreen} />
           </>
         )}
       </Stack.Navigator>

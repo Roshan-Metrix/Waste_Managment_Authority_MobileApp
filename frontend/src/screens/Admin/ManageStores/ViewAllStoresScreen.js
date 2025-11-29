@@ -40,7 +40,7 @@ export default function ViewAllStoresScreen({ navigation }) {
     fetchStores();
   }, []);
 
-  // 🔍 Filter stores
+  //  Filter stores
   useEffect(() => {
     const s = search.toLowerCase();
 
@@ -96,9 +96,18 @@ export default function ViewAllStoresScreen({ navigation }) {
       ) : (
         <ScrollView contentContainerStyle={{ padding: 20 }}>
           {filteredStores.map((store, index) => (
-            <View key={index} style={styles.card}>
+            <TouchableOpacity
+              key={index}
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate("AllTransactionsScreen", { storeId: store.storeId })}
+              style={styles.card}
+            >
               <View style={styles.row}>
-                <MaterialIcons name="confirmation-number" size={22} color="#2563eb" />
+                <MaterialIcons
+                  name="confirmation-number"
+                  size={22}
+                  color="#2563eb"
+                />
                 <Text style={styles.value}>{store.storeId}</Text>
               </View>
 
@@ -121,14 +130,8 @@ export default function ViewAllStoresScreen({ navigation }) {
                 <MaterialIcons name="email" size={22} color="#2563eb" />
                 <Text style={styles.value}>{store.email}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
-
-          {filteredStores.length === 0 && (
-            <Text style={{ textAlign: "center", marginTop: 20, color: "#6b7280" }}>
-              No stores found
-            </Text>
-          )}
         </ScrollView>
       )}
     </View>

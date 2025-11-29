@@ -5,7 +5,6 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
-
 import { AuthProvider } from "./src/context/AuthContext";
 import AppNavigator from "./src/navigation/AppNavigator";
 import colors from './src/colors'
