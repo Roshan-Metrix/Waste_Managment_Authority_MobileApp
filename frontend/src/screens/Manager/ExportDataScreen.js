@@ -279,8 +279,8 @@ export default function ExportDataScreen({ navigation, route }) {
         await Print.printAsync({
           html: result.data,
         });
-        setAlertMessage("PDF document sent to device's Print/Save dialog.!");
-        setAlertVisible(true);
+        // setAlertMessage("PDF document sent to device's Print/Save dialog.!");
+        // setAlertVisible(true);
       } else {
         const fileUri = FileSystem.cacheDirectory + result.fileName;
 

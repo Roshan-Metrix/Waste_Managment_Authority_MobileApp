@@ -89,9 +89,24 @@ const [alertMessage, setAlertMessage] = useState("");
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await api.get("/auth/manager/profile");
-        setProfile(res.data.manager);
-        setStore(res.data.store);
+        // const res = await api.get("/auth/manager/profile");
+         let transactionId;
+      if (route.params?.transactionId) {
+        transactionId = route.params.transactionId;
+        console.log("Using transaction ID from route params:", transactionId);
+      } else {
+        const stored = await AsyncStorage.getItem("todayTransaction");
+        const parsed = JSON.parse(stored);
+        transactionId = parsed?.transactionId;
+        console.log("Using transaction ID from AsyncStorage:", transactionId);
+      }
+
+      const res = await api.get(
+        `/manager/transaction/todays-transactions/${transactionId}`
+      );
+// console.log(res.data.transactions[0].managerName);
+        setProfile(res.data.transactions[0].managerName);
+        setStore(res.data.transactions[0].store);
       } catch (err) {
         console.log("Profile Error: ", err);
       }
@@ -210,9 +225,9 @@ setAlertVisible(true);
   const navigateToExport = () => {
     const dataToExport = {
       transactionId: transactionData?.transactionId,
-      storeName: store?.name || "Store N/A",
+      storeName: store?.storeName || "Store N/A",
       storeLocation: store?.storeLocation || "Location N/A",
-      managerEmail: profile?.email || "Manager N/A",
+      managerEmail: profile || "Manager N/A",
       vendorName: transactionData?.vendorName || "Vendor N/A",
       grandTotalWeight: grandTotalWeight,
       billDate: todayISTDate,
@@ -254,7 +269,7 @@ setAlertVisible(true);
         {/* BILL AREA */}
         <View style={styles.billBox}>
           <Text style={styles.storeName}>
-            {store?.name || "Store Name N/A"}
+            {store?.storeName || "Store Name N/A"}
           </Text>
           <Text style={styles.storeLocation}>
             {store?.storeLocation || "Location N/A"}
@@ -273,7 +288,7 @@ setAlertVisible(true);
           <View style={styles.rowBetween}>
             <Text style={styles.label}>
               <Text style={styles.labelBold}>Manager :</Text>{" "}
-              {profile?.email || "Loading..."}
+              {profile || "Loading..."}
             </Text>
             <Text style={styles.label}>
               <Text style={styles.labelBold}>Vendor :</Text>{" "}
