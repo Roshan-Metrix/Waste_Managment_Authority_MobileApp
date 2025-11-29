@@ -5,10 +5,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import Alert from "../../Components/Alert";
 
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
@@ -236,6 +236,8 @@ const generatePDF = (data) => {
 };
 
 export default function ExportDataScreen({ navigation, route }) {
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
   const transactionData = route.params?.transactionData;
 
   const [isExporting, setIsExporting] = useState(false);
@@ -268,7 +270,8 @@ export default function ExportDataScreen({ navigation, route }) {
       } else if (type === "CSV" || type === "Excel") {
         result = generateCSV(transactionData);
       } else {
-        Alert.alert("Error", "Invalid export type selected.");
+        setAlertMessage("Invalid export type selected!");
+        setAlertVisible(true);
         return;
       }
 
@@ -276,10 +279,8 @@ export default function ExportDataScreen({ navigation, route }) {
         await Print.printAsync({
           html: result.data,
         });
-        Alert.alert(
-          "Success",
-          "PDF document sent to device's Print/Save dialog."
-        );
+        setAlertMessage("PDF document sent to device's Print/Save dialog.!");
+        setAlertVisible(true);
       } else {
         const fileUri = FileSystem.cacheDirectory + result.fileName;
 
@@ -288,7 +289,8 @@ export default function ExportDataScreen({ navigation, route }) {
         });
 
         if (!(await Sharing.isAvailableAsync())) {
-          Alert.alert("Error", "Sharing is not available on this device.");
+          setAlertMessage("Sharing is not available on this device!");
+          setAlertVisible(true);
           return;
         }
 
@@ -424,6 +426,11 @@ export default function ExportDataScreen({ navigation, route }) {
           </Text>
         </View>
       </ScrollView>
+      <Alert
+        visible={alertVisible}
+        message={alertMessage}
+        onClose={() => setAlertVisible(false)}
+      />
     </View>
   );
 }

@@ -7,13 +7,13 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
 import api from "../../../api/api";
 import { useFocusEffect, useRoute } from "@react-navigation/native";
 import colors from "../../../colors";
+import Alert from "../../../Components/Alert";
 
 export default function BillingExportTransactionScreen({ navigation }) {
   const route = useRoute();
@@ -25,6 +25,8 @@ export default function BillingExportTransactionScreen({ navigation }) {
 
   const [managerSignature, setManagerSignature] = useState(null);
   const [vendorSignature, setVendorSignature] = useState(null);
+  const [alertVisible, setAlertVisible] = useState(false);
+const [alertMessage, setAlertMessage] = useState("");
 
   // Converts ISO string to IST formatted date and time.
   const formatISTDateTime = (isoString) => {
@@ -115,10 +117,8 @@ export default function BillingExportTransactionScreen({ navigation }) {
 
       if (!transactionId) {
         setLoading(false);
-        Alert.alert(
-          "No Transaction",
-          "No active transaction ID found for billing."
-        );
+        setAlertMessage("No active transaction ID found");
+setAlertVisible(true);
         return;
       }
 
@@ -139,7 +139,9 @@ export default function BillingExportTransactionScreen({ navigation }) {
         "Fetch transaction data error:",
         e?.response?.data || e.message
       );
-      Alert.alert("Error", "Failed to fetch transaction data.");
+      // Alert.alert("Error", "Failed to fetch transaction data.");
+       setAlertMessage("Failed to fetch transaction data.");
+setAlertVisible(true);
     } finally {
       setLoading(false);
     }
@@ -416,7 +418,7 @@ export default function BillingExportTransactionScreen({ navigation }) {
           {/* * END NEW DISPLAY */}
 
           {/* Total Words - Placeholder */}
-         {/* <Text style={styles.totalWords}>
+          {/* <Text style={styles.totalWords}>
             Grand Total (in words): _______________________________________
           </Text> */}
 
@@ -464,6 +466,11 @@ export default function BillingExportTransactionScreen({ navigation }) {
           <Text style={styles.exportText}>Export Bill</Text>
         </TouchableOpacity>
       </ScrollView>
+      <Alert
+  visible={alertVisible}
+  message={alertMessage}
+  onClose={() => setAlertVisible(false)}
+/>
     </View>
   );
 }
@@ -635,7 +642,7 @@ const styles = StyleSheet.create({
   summaryMaterial: {
     fontSize: 14,
     fontWeight: "600",
-    color: colors.primary, 
+    color: colors.primary,
     marginRight: 5,
   },
   summaryItems: {

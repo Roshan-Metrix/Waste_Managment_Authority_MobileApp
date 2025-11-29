@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Alert,
   TextInput,
   Platform,
   FlatList,
@@ -15,6 +14,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import api from "../../../api/api";
+import Alert from "../../../Components/Alert";
 
 const PRIMARY_COLOR = "#1e40af";
 const LIGHT_BACKGROUND = "#f9fafb";
@@ -26,6 +26,9 @@ const PAGE_SIZE = 10;
 
 export default function ShowAllTransaction({ route, navigation }) {
   const { storeId } = route.params;
+
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
 
   const [transactions, setTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -82,7 +85,9 @@ export default function ShowAllTransaction({ route, navigation }) {
     setIsLoading(true);
     try {
       if (!storeId) {
-        Alert.alert("Error", "Store ID not found.");
+        // Alert.alert("Error", "Store ID not found.");
+        setAlertMessage("Store ID not found.");
+        setAlertVisible(true);
         setIsLoading(false);
         return;
       }
@@ -102,11 +107,13 @@ export default function ShowAllTransaction({ route, navigation }) {
           name: txns[0]?.store?.storeName || "Store",
         });
       } else {
-        Alert.alert("API Error", response.data?.message || "Failed to load.");
+        setAlertMessage(response.data?.message || "Failed to load.");
+        setAlertVisible(true);
       }
     } catch (error) {
       console.error("Fetch error", error);
-      Alert.alert("Network Error", "Could not connect to server.");
+      setAlertMessage("Network Error");
+      setAlertVisible(true);
     } finally {
       setIsLoading(false);
     }
@@ -231,11 +238,13 @@ export default function ShowAllTransaction({ route, navigation }) {
           </Text>
 
           <Text style={styles.detailText}>
-            Date: <Text style={styles.bold}>{formatTimestamp(txn.createdAt)}</Text>
+            Date:{" "}
+            <Text style={styles.bold}>{formatTimestamp(txn.createdAt)}</Text>
           </Text>
 
           <Text style={styles.detailText}>
-            Total Items: <Text style={styles.bold}>{txn.items?.length ?? 0}</Text>
+            Total Items:{" "}
+            <Text style={styles.bold}>{txn.items?.length ?? 0}</Text>
           </Text>
         </View>
       </TouchableOpacity>
@@ -252,14 +261,16 @@ export default function ShowAllTransaction({ route, navigation }) {
     <View style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <MaterialIcons name="arrow-back" size={26} color={PRIMARY_COLOR} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>Store Transactions</Text>
 
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-
           <TouchableOpacity onPress={onRefresh}>
             <MaterialIcons name="refresh" size={24} color={PRIMARY_COLOR} />
           </TouchableOpacity>
@@ -291,8 +302,19 @@ export default function ShowAllTransaction({ route, navigation }) {
             style={styles.sortToggle}
             onPress={() => setSortOpen((s) => !s)}
           >
-            <Text style={styles.sortToggleText}>Sort: {sortType === "latest" ? "Latest" : sortType === "highest" ? "Highest" : "A–Z"}</Text>
-            <MaterialIcons name={sortOpen ? "keyboard-arrow-up" : "keyboard-arrow-down"} size={22} color="#555" />
+            <Text style={styles.sortToggleText}>
+              Sort:{" "}
+              {sortType === "latest"
+                ? "Latest"
+                : sortType === "highest"
+                ? "Highest"
+                : "A–Z"}
+            </Text>
+            <MaterialIcons
+              name={sortOpen ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+              size={22}
+              color="#555"
+            />
           </TouchableOpacity>
         </View>
 
@@ -301,7 +323,10 @@ export default function ShowAllTransaction({ route, navigation }) {
           {sortOpen && (
             <View style={styles.dropdownInner}>
               <TouchableOpacity
-                style={[styles.sortButton, sortType === "latest" && styles.sortActiveSmall]}
+                style={[
+                  styles.sortButton,
+                  sortType === "latest" && styles.sortActiveSmall,
+                ]}
                 onPress={() => {
                   setSortType("latest");
                   setSortOpen(false);
@@ -311,7 +336,10 @@ export default function ShowAllTransaction({ route, navigation }) {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.sortButton, sortType === "highest" && styles.sortActiveSmall]}
+                style={[
+                  styles.sortButton,
+                  sortType === "highest" && styles.sortActiveSmall,
+                ]}
                 onPress={() => {
                   setSortType("highest");
                   setSortOpen(false);
@@ -321,7 +349,10 @@ export default function ShowAllTransaction({ route, navigation }) {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.sortButton, sortType === "az" && styles.sortActiveSmall]}
+                style={[
+                  styles.sortButton,
+                  sortType === "az" && styles.sortActiveSmall,
+                ]}
                 onPress={() => {
                   setSortType("az");
                   setSortOpen(false);
@@ -335,12 +366,22 @@ export default function ShowAllTransaction({ route, navigation }) {
 
         {/* Date Filters (native pickers) */}
         <View style={styles.dateRow}>
-          <TouchableOpacity style={styles.dateInput} onPress={() => setShowFromPicker(true)}>
-            <Text style={styles.dateText}>{fromDate ? `From: ${fromDate}` : "From Date"}</Text>
+          <TouchableOpacity
+            style={styles.dateInput}
+            onPress={() => setShowFromPicker(true)}
+          >
+            <Text style={styles.dateText}>
+              {fromDate ? `From: ${fromDate}` : "From Date"}
+            </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.dateInput} onPress={() => setShowToPicker(true)}>
-            <Text style={styles.dateText}>{toDate ? `To: ${toDate}` : "To Date"}</Text>
+          <TouchableOpacity
+            style={styles.dateInput}
+            onPress={() => setShowToPicker(true)}
+          >
+            <Text style={styles.dateText}>
+              {toDate ? `To: ${toDate}` : "To Date"}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -365,7 +406,11 @@ export default function ShowAllTransaction({ route, navigation }) {
 
       {/* TRANSACTION LIST (FlatList with pagination) */}
       {isLoading ? (
-        <ActivityIndicator style={{ marginTop: 40 }} size="large" color={PRIMARY_COLOR} />
+        <ActivityIndicator
+          style={{ marginTop: 40 }}
+          size="large"
+          color={PRIMARY_COLOR}
+        />
       ) : (
         <FlatList
           data={displayList}
@@ -386,10 +431,14 @@ export default function ShowAllTransaction({ route, navigation }) {
           )}
         />
       )}
+      <Alert
+        visible={alertVisible}
+        message={alertMessage}
+        onClose={() => setAlertVisible(false)}
+      />
     </View>
   );
 }
-
 
 //    STYLES
 
@@ -408,7 +457,7 @@ const styles = StyleSheet.create({
     paddingBottom: 18,
     backgroundColor: CARD_COLOR,
     elevation: 6,
-    justifyContent:"space-between",
+    justifyContent: "space-between",
   },
 
   backButton: {

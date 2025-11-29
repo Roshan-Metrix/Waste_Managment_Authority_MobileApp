@@ -16,8 +16,6 @@ const handleSubmit = async () => {
 };
 
 const handleProceed = async () => {
- // NOTE: Using AsyncStorage for persistence is generally discouraged in favor of Firestore,
-    // but preserving original logic here for now.
  const stored = await AsyncStorage.getItem("todayTransaction");
  const parsed = JSON.parse(stored);
  const transactionId = parsed?.transactionId;

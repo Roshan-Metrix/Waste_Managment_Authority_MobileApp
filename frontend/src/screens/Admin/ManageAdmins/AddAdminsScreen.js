@@ -12,8 +12,11 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import api from "../../../api/api";
+import Alert from "../../../Components/Alert";
 
 export default function AddAdminsScreen({ navigation }) {
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -69,7 +72,8 @@ export default function AddAdminsScreen({ navigation }) {
   // Press Create -> show popup
   const handleCreate = () => {
     if (!name || !email) {
-      alert("Please fill all fields");
+      setAlertMessage("Please fill all field");
+      setAlertVisible(true);
       return;
     }
     setShowPopup(true);
@@ -78,7 +82,8 @@ export default function AddAdminsScreen({ navigation }) {
   // FINAL CONFIRM -> Verify admin -> register new admin
   const handleConfirm = async () => {
     if (!adminEmail || !adminPassword) {
-      alert("Enter your admin login credentials");
+      setAlertMessage("Enter your login credentials");
+      setAlertVisible(true);
       return;
     }
 
@@ -93,7 +98,8 @@ export default function AddAdminsScreen({ navigation }) {
 
       if (!verify.data.success) {
         setLoading(false);
-        alert("Admin verification failed!");
+        setAlertMessage("Admin verification failed!");
+        setAlertVisible(true);
         return;
       }
 
@@ -107,11 +113,13 @@ export default function AddAdminsScreen({ navigation }) {
 
       if (!registerRes.data.success) {
         setLoading(false);
-        alert(registerRes.data.message);
+        setAlertMessage(registerRes.data.message);
+        setAlertVisible(true);
         return;
       }
 
-      alert("Admin Created Successfully!");
+      setAlertMessage("Admin Created Successfully!");
+      setAlertVisible(true);
 
       // Reset All Inputs
       setName("");
@@ -121,7 +129,8 @@ export default function AddAdminsScreen({ navigation }) {
       setAdminPassword("");
       setShowPopup(false);
     } catch (err) {
-      alert("Error: " + err.message);
+      setAlertMessage("Error: " + err.message);
+      setAlertVisible(true);
     } finally {
       setLoading(false);
     }
@@ -141,7 +150,6 @@ export default function AddAdminsScreen({ navigation }) {
         <Text style={styles.headerTitle}>Add Admin</Text>
         <View style={{ width: 26 }} />
       </View>
-
       <ScrollView contentContainerStyle={styles.content}>
         {/* Icon */}
         <View style={styles.iconCircle}>
@@ -200,7 +208,6 @@ export default function AddAdminsScreen({ navigation }) {
           <Text style={styles.btnText}>Create Admin</Text>
         </TouchableOpacity>
       </ScrollView>
-
       {/* POPUP */}
       <Modal transparent visible={showPopup} animationType="fade">
         <View style={styles.modalOverlay}>
@@ -247,6 +254,11 @@ export default function AddAdminsScreen({ navigation }) {
           </View>
         </View>
       </Modal>
+      <Alert
+        visible={alertVisible}
+        message={alertMessage}
+        onClose={() => setAlertVisible(false)}
+      />
     </View>
   );
 }

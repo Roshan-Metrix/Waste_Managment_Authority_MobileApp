@@ -10,8 +10,11 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import api from "../../../api/api";
+import Alert from "../../../Components/Alert";
 
 export default function ViewAllStoresScreen({ navigation }) {
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
   const [stores, setStores] = useState([]);
   const [filteredStores, setFilteredStores] = useState([]);
   const [count, setCount] = useState(0);
@@ -28,10 +31,13 @@ export default function ViewAllStoresScreen({ navigation }) {
         setFilteredStores(data.stores);
         setCount(data.count);
       } else {
-        alert(data.message);
+        setAlertMessage(data.message);
+        setAlertVisible(true);
       }
     } catch (error) {
-      alert("Error fetching stores: " + error.message);
+      console.log("Error fetching stores: " + error.message);
+      setAlertMessage("Error fetching stores!");
+      setAlertVisible(true);
     }
     setLoading(false);
   };
@@ -99,7 +105,11 @@ export default function ViewAllStoresScreen({ navigation }) {
             <TouchableOpacity
               key={index}
               activeOpacity={0.8}
-              onPress={() => navigation.navigate("AllTransactionsScreen", { storeId: store.storeId })}
+              onPress={() =>
+                navigation.navigate("AllTransactionsScreen", {
+                  storeId: store.storeId,
+                })
+              }
               style={styles.card}
             >
               <View style={styles.row}>
@@ -134,6 +144,11 @@ export default function ViewAllStoresScreen({ navigation }) {
           ))}
         </ScrollView>
       )}
+      <Alert
+        visible={alertVisible}
+        message={alertMessage}
+        onClose={() => setAlertVisible(false)}
+      />
     </View>
   );
 }

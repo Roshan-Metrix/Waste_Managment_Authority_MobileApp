@@ -14,6 +14,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import api from "../../api/api";
+import Alert from "../../Components/Alert";
 
 export default function AddStoreScreen({ navigation }) {
   const [storeId, setStoreId] = useState("");
@@ -28,6 +29,8 @@ export default function AddStoreScreen({ navigation }) {
   const [adminPassword, setAdminPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
 
   const generatePassword = () => {
     const chars =
@@ -56,7 +59,8 @@ export default function AddStoreScreen({ navigation }) {
       !email ||
       !password
     ) {
-      alert("Please fill all fields!");
+      setAlertMessage("Please fill all field");
+      setAlertVisible(true);
       return;
     }
     setModalVisible(true);
@@ -80,7 +84,8 @@ export default function AddStoreScreen({ navigation }) {
       const { data } = await api.post("/auth/admin/registerStore", payload);
 
       if (data.success) {
-        alert("Store created successfully!");
+        setAlertMessage("Store created successfully .");
+        setAlertVisible(true);
         setModalVisible(false);
 
         setStoreId("");
@@ -92,10 +97,12 @@ export default function AddStoreScreen({ navigation }) {
         setAdminEmail("");
         setAdminPassword("");
       } else {
-        alert(data.message || "Something went wrong");
+       setAlertMessage(data.message || "Something went wrong");
+       setAlertVisible(true);
       }
     } catch (err) {
-      alert("API Error: " + err.message);
+      setAlertMessage("Something went wrong");
+      setAlertVisible(true);
     } finally {
       setLoading(false);
     }
@@ -269,6 +276,11 @@ export default function AddStoreScreen({ navigation }) {
           </View>
         </View>
       </Modal>
+      <Alert
+        visible={alertVisible}
+        message={alertMessage}
+        onClose={() => setAlertVisible(false)}
+      />
     </View>
   );
 }

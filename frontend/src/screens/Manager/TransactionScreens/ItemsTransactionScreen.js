@@ -8,7 +8,6 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { Camera, CameraView } from "expo-camera";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -16,11 +15,15 @@ import { runOcrOnImage } from "../../../ocr/ocrService";
 import { parseWeight } from "../../../ocr/parseWeight";
 import api from "../../../api/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Alert from "../../../Components/Alert";
 
 export default function ItemsTransactionScreen({ navigation }) {
   const cameraRef = useRef(null);
   const [photo, setPhoto] = useState(null);
   const [hasPermission, setHasPermission] = useState(null);
+
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
 
   const [materialType, setMaterialType] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -73,9 +76,9 @@ export default function ItemsTransactionScreen({ navigation }) {
 
       if (res.data?.success) {
         const items = res.data?.transactions?.[0]?.items || [];
-        
+
         const reversedItems = [...items].reverse();
-        
+
         setItemsList(reversedItems);
       }
     } catch (e) {
@@ -89,7 +92,8 @@ export default function ItemsTransactionScreen({ navigation }) {
   const handleCapture = async () => {
     try {
       if (!cameraRef.current) {
-        Alert.alert("Camera not ready");
+        setAlertMessage("Camera not ready!");
+        setAlertVisible(true);
         return;
       }
 
@@ -102,34 +106,37 @@ export default function ItemsTransactionScreen({ navigation }) {
       setLoading(true);
 
       // OCR
-    
-      const ocrText = await runOcrOnImage(picture.uri); 
+
+      const ocrText = await runOcrOnImage(picture.uri);
       const cleanWeight = parseWeight(ocrText);
 
       if (cleanWeight) setFetchWeight(cleanWeight.toString());
       else {
-        Alert.alert(
-          "OCR couldn't detect weight",
-          "Please enter weight manually or capture again."
+        setAlertMessage(
+          "OCR couldn't detect weight.\nPlease enter weight manually or capture again."
         );
+        setAlertVisible(true);
         setFetchWeight("");
       }
       setLoading(false);
     } catch (e) {
       console.log("Capture Error:", e);
       setLoading(false);
-      Alert.alert("Capture Failed", "Try again.");
+      setAlertMessage("Capture Failed. \n Try again.");
+      setAlertVisible(true);
     }
   };
 
   // Add item to backend
   const handleAddItem = async () => {
     if (!materialType) {
-      Alert.alert("Missing", "Please select material type.");
+      setAlertMessage("Please select material type!");
+      setAlertVisible(true);
       return;
     }
     if (!photo) {
-      Alert.alert("Missing", "Please capture an image first.");
+      setAlertMessage("Please capture an image first!");
+      setAlertVisible(true);
       return;
     }
 
@@ -146,7 +153,8 @@ export default function ItemsTransactionScreen({ navigation }) {
     }
 
     if (!weight) {
-      Alert.alert("Missing", "No weight detected or entered.");
+      setAlertMessage("No weight detected or entered.");
+      setAlertVisible(true);
       return;
     }
 
@@ -159,10 +167,8 @@ export default function ItemsTransactionScreen({ navigation }) {
 
       if (!transactionId) {
         setLoading(false);
-        Alert.alert(
-          "No transaction",
-          "Please create or fetch a transaction first."
-        );
+        setAlertMessage("Please create or fetch a transaction first!");
+        setAlertVisible(true);
         return;
       }
 
@@ -182,10 +188,10 @@ export default function ItemsTransactionScreen({ navigation }) {
 
       if (res.data?.success) {
         const returnedItems = res.data.items || [];
-        
-        const reversedReturnedItems = [...returnedItems].reverse(); 
-        
-        setItemsList(reversedReturnedItems); 
+
+        const reversedReturnedItems = [...returnedItems].reverse();
+
+        setItemsList(reversedReturnedItems);
 
         // reset fields for next item
         setPhoto(null);
@@ -193,18 +199,18 @@ export default function ItemsTransactionScreen({ navigation }) {
         setFetchWeight("");
         setEnterWeight("");
 
-        Alert.alert("Success", "Item added successfully!");
+        setAlertMessage("Item added successfully!");
+        setAlertVisible(true);
       } else {
         console.log("Add item response:", res.data);
-        Alert.alert("Failed", res.data?.message || "Item not added.");
+        setAlertMessage(res.data?.message || "Item not added.");
+        setAlertVisible(true);
       }
     } catch (err) {
       setLoading(false);
       console.log("ADD ITEM ERROR:", err?.response?.data || err.message || err);
-      Alert.alert(
-        "Error",
-        err?.response?.data?.message || "Error adding item."
-      );
+      setAlertMessage("Something went wrong!");
+      setAlertVisible(true);
     }
   };
 
@@ -254,32 +260,32 @@ export default function ItemsTransactionScreen({ navigation }) {
     );
   }
 
-const formatDateTime = (isoString) => {
-  if (!isoString) {
-    return { formattedDate: "N/A", formattedTime: "N/A" };
-  }
-  try {
-    const date = new Date(isoString);
+  const formatDateTime = (isoString) => {
+    if (!isoString) {
+      return { formattedDate: "N/A", formattedTime: "N/A" };
+    }
+    try {
+      const date = new Date(isoString);
 
-    // Format Date (e.g., "Nov 25, 2025")
-    const formattedDate = date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: '2-digit',
-    });
+      // Format Date (e.g., "Nov 25, 2025")
+      const formattedDate = date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+      });
 
-    // Format Time (e.g., "2:30 PM")
-    const formattedTime = date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-    return { formattedDate, formattedTime };
-  } catch (e) {
-    console.error("Date formatting error:", e);
-    return { formattedDate: "Invalid Date", formattedTime: "Invalid Time" };
-  }
-};
+      // Format Time (e.g., "2:30 PM")
+      const formattedTime = date.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+      return { formattedDate, formattedTime };
+    } catch (e) {
+      console.error("Date formatting error:", e);
+      return { formattedDate: "Invalid Date", formattedTime: "Invalid Time" };
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -397,7 +403,9 @@ const formatDateTime = (isoString) => {
           <View style={{ marginTop: 10 }}>
             {itemsList.map((item) => {
               const imgUri = getItemImageUri(item.image);
-              const { formattedDate, formattedTime } = formatDateTime(item.createdAt);
+              const { formattedDate, formattedTime } = formatDateTime(
+                item.createdAt
+              );
               return (
                 <View key={item.itemNo} style={styles.card}>
                   <Image
@@ -410,10 +418,12 @@ const formatDateTime = (isoString) => {
                   />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.cardTitle}>
-                     {/* {item.itemNo}.  */}
-                     {item.materialType}
+                      {/* {item.itemNo}.  */}
+                      {item.materialType}
                     </Text>
-                    <Text style={styles.cardSub}>Weight : {item.weight} kg</Text>
+                    <Text style={styles.cardSub}>
+                      Weight : {item.weight} kg
+                    </Text>
                     <Text style={styles.cardSub}>Date : {formattedDate} </Text>
                     <Text style={styles.cardSub}>Time : {formattedTime} </Text>
                     <Text style={styles.cardTag}>
@@ -434,6 +444,11 @@ const formatDateTime = (isoString) => {
           <Text style={{ color: "#fff", marginTop: 6 }}>Processing...</Text>
         </View>
       )}
+      <Alert
+        visible={alertVisible}
+        message={alertMessage}
+        onClose={() => setAlertVisible(false)}
+      />
     </View>
   );
 }

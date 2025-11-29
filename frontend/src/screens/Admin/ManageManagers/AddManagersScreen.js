@@ -13,8 +13,11 @@ import { ActivityIndicator } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import api from "../../../api/api";
+import Alert from "../../../Components/Alert";
 
 export default function AddManagersScreen({ navigation }) {
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -69,7 +72,8 @@ export default function AddManagersScreen({ navigation }) {
   // Press Create -> show popup
   const handleCreate = () => {
     if (!name || !email) {
-      alert("Please fill all fields");
+      setAlertMessage("Please fill all fields");
+      setAlertVisible(true);
       return;
     }
     setShowPopup(true);
@@ -78,7 +82,8 @@ export default function AddManagersScreen({ navigation }) {
   // FINAL CONFIRM -> Verify credentials -> register new manager
   const handleConfirm = async () => {
     if (!adminEmail || !adminPassword) {
-      alert("Enter your login credentials");
+      setAlertMessage("Enter your login credentials");
+      setAlertVisible(true);
       return;
     }
 
@@ -93,7 +98,8 @@ export default function AddManagersScreen({ navigation }) {
 
       if (!verify.data.success) {
         setLoading(false);
-        alert("Admin verification failed!");
+        setAlertMessage("Admin verification failed!");
+        setAlertVisible(true);
         return;
       }
 
@@ -111,7 +117,8 @@ export default function AddManagersScreen({ navigation }) {
         return;
       }
 
-      alert("Manager Created Successfully!");
+      setAlertMessage("Manager Created Successfully!");
+      setAlertVisible(true);
 
       // Reset fields
       setName("");
@@ -121,7 +128,8 @@ export default function AddManagersScreen({ navigation }) {
       setAdminPassword("");
       setShowPopup(false);
     } catch (err) {
-      alert("Error: " + err.message);
+      setAlertMessage("Something went wrong!");
+      setAlertVisible(true);
     } finally {
       setLoading(false);
     }
@@ -254,6 +262,11 @@ export default function AddManagersScreen({ navigation }) {
           </View>
         </View>
       </Modal>
+      <Alert
+        visible={alertVisible}
+        message={alertMessage}
+        onClose={() => setAlertVisible(false)}
+      />
     </View>
   );
 }

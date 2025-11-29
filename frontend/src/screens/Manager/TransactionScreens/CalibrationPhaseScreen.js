@@ -16,7 +16,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { runOcrOnImage } from "../../../ocr/ocrService";
 import { parseWeight } from "../../../ocr/parseWeight";
 import api from "../../../api/api";
-import colors from "../../../colors"
+import colors from "../../../colors";
+import Alert from "../../../Components/Alert";
 
 export default function CalibrationPhaseScreen({ navigation }) {
   const cameraRef = useRef(null);
@@ -25,6 +26,9 @@ export default function CalibrationPhaseScreen({ navigation }) {
   const [photo, setPhoto] = useState(null);
   const [fetchWeight, setFetchWeight] = useState("");
   const [enterWeight, setEnterWeight] = useState("");
+
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [canCalibrate, setCanCalibrate] = useState(false);
@@ -52,7 +56,9 @@ export default function CalibrationPhaseScreen({ navigation }) {
       if (cleanWeight) {
         setFetchWeight(cleanWeight.toString());
       } else {
-        alert("Unable to detect weight!");
+        // alert("Unable to detect weight!");
+        setAlertMessage("Unable to detect weight!");
+        setAlertVisible(true);
         setFetchWeight("");
       }
 
@@ -61,7 +67,9 @@ export default function CalibrationPhaseScreen({ navigation }) {
     } catch (e) {
       console.log("Capture error:", e);
       setLoading(false);
-      alert("Capture failed.");
+      // alert("Capture failed.");
+      setAlertMessage("Capture failed.");
+      setAlertVisible(true);
     }
   };
 
@@ -73,7 +81,9 @@ export default function CalibrationPhaseScreen({ navigation }) {
 
   const handleCalibrate = async () => {
     if (!fetchWeight || !enterWeight || !photo) {
-      alert("Weight missing.");
+      // alert("Weight missing.");
+      setAlertMessage("Weight missing!");
+      setAlertVisible(true);
       return;
     }
 
@@ -101,10 +111,14 @@ export default function CalibrationPhaseScreen({ navigation }) {
         await AsyncStorage.setItem("calibrationStatus", "Completed");
         navigation.navigate("ProcessTransactionScreen");
       } else {
-        alert("Calibration failed.");
+        // alert("Calibration failed.");
+        setAlertMessage("Calibration failed!");
+      setAlertVisible(true);
       }
     } catch (err) {
-      alert(err?.response?.data?.message);
+      console.log(err?.response?.data?.message);
+      setAlertMessage("Something Went Wrong!");
+      setAlertVisible(true);
       setLoading(false);
     }
   };
@@ -195,16 +209,19 @@ export default function CalibrationPhaseScreen({ navigation }) {
           </TouchableOpacity>
         )}
 
-       {/* Info Footer */}
-       {!canCalibrate && (
-            <View style={styles.infoBox}>
-              <MaterialIcons name="info-outline" size={22} color={colors.primary} />
-              <Text style={styles.infoText}>
-                Zero error must be less than 0.1 kg
-              </Text>
-            </View>
-            )}
-
+        {/* Info Footer */}
+        {!canCalibrate && (
+          <View style={styles.infoBox}>
+            <MaterialIcons
+              name="info-outline"
+              size={22}
+              color={colors.primary}
+            />
+            <Text style={styles.infoText}>
+              Zero error must be less than 0.1 kg
+            </Text>
+          </View>
+        )}
       </ScrollView>
 
       {loading && (
@@ -213,6 +230,11 @@ export default function CalibrationPhaseScreen({ navigation }) {
           <Text style={{ color: "#fff", marginTop: 10 }}>Processing...</Text>
         </View>
       )}
+      <Alert
+        visible={alertVisible}
+        message={alertMessage}
+        onClose={() => setAlertVisible(false)}
+      />
     </View>
   );
 }
@@ -269,7 +291,7 @@ const styles = StyleSheet.create({
     width: "90%",
     alignSelf: "center",
   },
-  inputLabel: { fontSize: 14, fontWeight: "600",padding:5 },
+  inputLabel: { fontSize: 14, fontWeight: "600", padding: 5 },
   inputWrapper: {
     flexDirection: "row",
     backgroundColor: "#f3f4f6",
@@ -309,7 +331,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-   infoBox: {
+  infoBox: {
     flexDirection: "row",
     alignItems: "flex-start",
     backgroundColor: "#eff6ff",

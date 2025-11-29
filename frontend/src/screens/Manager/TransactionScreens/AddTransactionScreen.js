@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  Alert,
   ActivityIndicator,
   ScrollView,
 } from "react-native";
@@ -19,10 +18,13 @@ import {
 } from "../../../utils/storage";
 import colors from "../../../colors";
 import { AuthContext } from "../../../context/AuthContext";
+import Alert from "../../../Components/Alert";
 
 export default function AddTransactionScreen({ navigation }) {
   const { user } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
   const [sendingLoading, setSendingLoading] = useState(false);
   const [storeId, setStoreId] = useState("");
   const [storeName, setStoreName] = useState("");
@@ -64,7 +66,9 @@ export default function AddTransactionScreen({ navigation }) {
         }
       }
     } catch (err) {
-      Alert.alert("Error", "Failed to load profile.");
+      // Alert.alert("Error", "Failed to load profile.");
+      setAlertMessage("Failed to load profile.");
+      setAlertVisible(true);
     }
     setLoading(false);
   };
@@ -75,11 +79,16 @@ export default function AddTransactionScreen({ navigation }) {
 
   const handleProcess = async () => {
     if (!vendor) {
-      return Alert.alert("Missing", "Please select Vendor Name.");
+      setAlertMessage("Please select Vendor Name.");
+      setAlertVisible(true);
+      return;
     }
 
     if (vendor === "Others" && !otherVendor.trim()) {
-      return Alert.alert("Missing Field", "Please enter Vendor Name.");
+      // return Alert.alert("Missing Field", "Please enter Vendor Name.");
+      setAlertMessage("Please enter Vendor Name.");
+      setAlertVisible(true);
+      return;
     }
 
     try {
@@ -93,13 +102,16 @@ export default function AddTransactionScreen({ navigation }) {
         vendorName: vendor === "Others" ? otherVendor : vendor,
       });
 
-      console.log("API Response:", res.data);
+      // console.log("API Response:", res.data);
 
       const transactionId = res.data?.transactionId;
 
       if (!transactionId) {
         setSendingLoading(false);
-        return Alert.alert("Error", "Failed to create transaction.");
+        // return Alert.alert("Error", "Failed to create transaction.");
+        setAlertMessage("Failed to create transaction.");
+        setAlertVisible(true);
+        return;
       }
 
       // Clear old transaction
@@ -113,7 +125,9 @@ export default function AddTransactionScreen({ navigation }) {
       navigation.navigate("ProcessTransactionScreen");
     } catch (error) {
       console.log("Transaction Error:", error.response?.data || error.message);
-      Alert.alert("Transaction Error:", error.response?.data.message);
+      // Alert.alert("Transaction Error:", error.response?.data.message);
+      setAlertMessage("Transaction Error!");
+      setAlertVisible(true);
       setSendingLoading(false);
       return navigation.navigate("UserScreen");
     }
@@ -210,6 +224,11 @@ export default function AddTransactionScreen({ navigation }) {
           <Text style={{ color: "#fff", marginTop: 10 }}>Processing...</Text>
         </View>
       )}
+      <Alert
+        visible={alertVisible}
+        message={alertMessage}
+        onClose={() => setAlertVisible(false)}
+      />
     </View>
   );
 }

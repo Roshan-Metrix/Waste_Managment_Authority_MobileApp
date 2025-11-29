@@ -11,11 +11,14 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import api from "../../../api/api";
+import Alert from "../../../Components/Alert";
 
 export default function RemoveStoresScreen({ navigation }) {
   const [stores, setStores] = useState([]);
   const [filteredStores, setFilteredStores] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedStore, setSelectedStore] = useState(null);
@@ -34,10 +37,12 @@ export default function RemoveStoresScreen({ navigation }) {
         setStores(res.data.stores);
         setFilteredStores(res.data.stores);
       } else {
-        alert("Failed to fetch stores");
+        setAlertMessage("Failed to fetch stores!");
+        setAlertVisible(true);
       }
     } catch (err) {
-      alert("Error fetching stores");
+      setAlertMessage("Error fetching stores!");
+      setAlertVisible(true);
       console.log(err);
     }
     setLoading(false);
@@ -64,7 +69,8 @@ export default function RemoveStoresScreen({ navigation }) {
   // Remove Store
   const confirmRemoval = async () => {
     if (!adminEmail || !adminPassword) {
-      alert("Please enter admin email and password!");
+      setAlertMessage("Please enter your credentials!");
+      setAlertVisible(true);
       return;
     }
 
@@ -84,7 +90,8 @@ export default function RemoveStoresScreen({ navigation }) {
         return;
       }
 
-      alert("Store removed successfully!");
+      setAlertMessage("Store removed successfully!");
+      setAlertVisible(true);
 
       const newList = stores.filter((s) => s.storeId !== selectedStore.storeId);
 
@@ -95,7 +102,7 @@ export default function RemoveStoresScreen({ navigation }) {
       setAdminEmail("");
       setAdminPassword("");
     } catch (error) {
-      alert(error.message);
+      console.log(error.message);
     }
   };
 
@@ -208,6 +215,11 @@ export default function RemoveStoresScreen({ navigation }) {
           </View>
         </View>
       </Modal>
+      <Alert
+        visible={alertVisible}
+        message={alertMessage}
+        onClose={() => setAlertVisible(false)}
+      />
     </View>
   );
 }
