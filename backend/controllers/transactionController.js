@@ -202,9 +202,10 @@ export const TodaysTransactionController = async (req, res) => {
   }
 };
 
+// Get total transaction of all particular store
 export const StoreTotalTransactionController = async (req, res) => {
   const storeId = req.params.storeId;
-
+  
   try {
     const transactions = await transactionModel.find({
       "store.storeId": storeId,
@@ -254,6 +255,7 @@ export const StoreTotalTransactionController = async (req, res) => {
   }
 };
 
+// Get total transaction of all store
 export const AllTransactionsController = async (req, res) => {
   try {
     const transactions = await transactionModel.find().select("-password -__v");
