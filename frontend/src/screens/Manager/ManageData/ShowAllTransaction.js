@@ -36,7 +36,6 @@ export default function ShowAllTransaction({ navigation }) {
     try {
       const getStoreId = await AsyncStorage.getItem("storeId");
       if (!getStoreId) {
-        //  Alert.alert("Error", "Store ID not found in local storage.");
         setAlertMessage("Store ID not found in local storage.");
         setAlertVisible(true);
         setIsLoading(false);
@@ -60,10 +59,6 @@ export default function ShowAllTransaction({ navigation }) {
           setStoreInfo((prev) => ({ ...prev, name: "No Transactions Found" }));
         }
       } else {
-        // Alert.alert(
-        //   "API Error",
-        //   response.data?.message || "Failed to fetch transactions."
-        // );
         setAlertMessage(
           "API Error",
           response.data?.message || "Failed to fetch transactions."
@@ -145,7 +140,9 @@ export default function ShowAllTransaction({ navigation }) {
             No transactions recorded for this store.
           </Text>
         ) : (
-          transactions.map((txn, index) => (
+          [...transactions]
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .map((txn, index) => (
             <TouchableOpacity
               key={txn.transactionId}
               style={styles.transactionCard}
