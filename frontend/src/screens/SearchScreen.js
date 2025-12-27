@@ -15,10 +15,10 @@ export default function SearchScreen({ navigation }) {
 
   // Dummy data for demonstration
   const allItems = [
-    { id: "1", title: "Plastic Waste Entry", description: "24 kg recycled" },
-    { id: "2", title: "Metal Scrap Entry", description: "10 kg stored" },
-    { id: "3", title: "E-Waste Entry", description: "8 kg processed" },
-    { id: "4", title: "Paper Waste Entry", description: "15 kg submitted" },
+    // { id: "1", title: "Plastic Waste Entry", description: "24 kg recycled" },
+    // { id: "2", title: "Metal Scrap Entry", description: "10 kg stored" },
+    // { id: "3", title: "E-Waste Entry", description: "8 kg processed" },
+    // { id: "4", title: "Paper Waste Entry", description: "15 kg submitted" },
   ];
 
   const handleSearch = (text) => {
@@ -76,7 +76,8 @@ export default function SearchScreen({ navigation }) {
         <View style={styles.emptyBox}>
           <MaterialIcons name="inbox" size={70} color="#9ca3af" />
           <Text style={styles.emptyText}>
-            {query ? "No results found" : "Start typing to search"}
+            {/* {query ? "No results found" : "Start typing to search"} */}
+            {"No search data available"}
           </Text>
         </View>
       )}
